@@ -1,0 +1,146 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Tetapkan Kelulusan{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Tetapkan Kelulusan — {{ jalur|capfirst }}</h1></div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="portlet box grey">
+                    <div class="portlet-title"><div class="caption"><i class="icon-user"></i> Data Pendaftar</div></div>
+                    <div class="portlet-body">
+                        <table class="table table-condensed">
+                            <tr><th>No Daftar</th><td>{{ obj.pendaftar.no_daftar }}</td></tr>
+                            <tr><th>Nama</th><td>{{ obj.pendaftar.nama }}</td></tr>
+                            <tr><th>Jalur</th><td>{{ obj.pendaftar.jalur }}</td></tr>
+                            <tr><th>Prodi 1</th><td>{{ obj.pendaftar.prodi1 }}</td></tr>
+                            <tr><th>Prodi 2</th><td>{{ obj.pendaftar.prodi2|default:"-" }}</td></tr>
+                            {% if jalur == 'raport' %}
+                            <tr><th>Nilai Raport</th><td>{{ obj.nilai_raport|default:"-" }}</td></tr>
+                            <tr><th>Nilai Prestasi</th><td>{{ obj.nilai_prestasi|default:"-" }}</td></tr>
+                            {% elif jalur == 'umum' %}
+                            <tr><th>Skor CBT</th><td>{{ obj.skor_cbt|default:"-" }}</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="portlet box green">
+                    <div class="portlet-title"><div class="caption"><i class="fa fa-graduation-cap"></i> Form Kelulusan</div></div>
+                    <div class="portlet-body">
+                        <form method="post" class="form-horizontal">
+                            {% csrf_token %}
+
+                            {% if jalur == 'raport' %}
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Status</label>
+                                <div class="col-sm-8">
+                                    <select name="status" class="form-control">
+                                        <option value="2" {% if obj.status == 2 %}selected{% endif %}>Valid (Belum ditetapkan)</option>
+                                        <option value="3" {% if obj.status == 3 %}selected{% endif %}>Lulus</option>
+                                        <option value="4" {% if obj.status == 4 %}selected{% endif %}>Tidak Lulus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {% elif jalur == 'beasiswa' %}
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Status Seleksi</label>
+                                <div class="col-sm-8">
+                                    <select name="status_seleksi" class="form-control">
+                                        <option value="2" {% if obj.status_seleksi == 2 %}selected{% endif %}>Verifikasi (Belum ditetapkan)</option>
+                                        <option value="3" {% if obj.status_seleksi == 3 %}selected{% endif %}>Lolos Beasiswa</option>
+                                        <option value="4" {% if obj.status_seleksi == 4 %}selected{% endif %}>Tidak Lolos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Status</label>
+                                <div class="col-sm-8">
+                                    <select name="status" class="form-control">
+                                        <option value="1" {% if obj.status == 1 %}selected{% endif %}>Mendaftar CBT</option>
+                                        <option value="2" {% if obj.status == 2 %}selected{% endif %}>Lulus</option>
+                                        <option value="3" {% if obj.status == 3 %}selected{% endif %}>Tidak Lulus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Skor CBT</label>
+                                <div class="col-sm-8">
+                                    <input type="number" step="0.01" name="skor_cbt" value="{{ obj.skor_cbt|default:'' }}" class="form-control">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Prodi Lulus</label>
+                                <div class="col-sm-8">
+                                    <select name="prodi_lulus" class="form-control">
+                                        <option value="">-- pilih prodi --</option>
+                                        {% for p in prodi_list %}
+                                        <option value="{{ p.pk }}" {% if obj.prodi_lulus_id == p.pk %}selected{% endif %}>{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Kelas</label>
+                                <div class="col-sm-8">
+                                    <select name="kelas" class="form-control">
+                                        <option value="">{% if reg.kelas %}-- ikuti pilihan cama ({{ reg.get_kelas_display }}) --{% else %}-- biarkan cama memilih --{% endif %}</option>
+                                        {% for val, label in kelas_choices %}
+                                        <option value="{{ val }}" {% if reg.kelas == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="help-block">
+                                        <i class="fa fa-info-circle"></i>
+                                        {% if reg.kelas %}
+                                        Cama sudah memilih kelas <strong>{{ reg.get_kelas_display }}</strong>.
+                                        Biarkan kosong kalau tidak ingin menggantinya.
+                                        {% else %}
+                                        Isi untuk pilihkan kelas cama. Kalau kosong, cama akan diminta memilih
+                                        sendiri sebelum sertifikat bisa dicetak.
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{% if jalur == 'beasiswa' %}Catatan Panitia{% else %}Keterangan{% endif %}</label>
+                                <div class="col-sm-8">
+                                    {% if jalur == 'beasiswa' %}
+                                    <textarea name="catatan_panitia" class="form-control" rows="3">{{ obj.catatan_panitia }}</textarea>
+                                    {% else %}
+                                    <textarea name="keterangan" class="form-control" rows="3">{{ obj.keterangan }}</textarea>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <button type="submit" class="btn btn-success"><i class="fa fa-graduation-cap"></i> Simpan Kelulusan</button>
+                                    <a href="{% url 'panel:kelulusan_list' %}?jalur={{ jalur }}" class="btn btn-default">Kembali</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

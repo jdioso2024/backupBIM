@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pmbbim-setup
+  namespace: default
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: laravel
+          image: haunans/pmbbim:latest
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              echo "=== PHP artisan setup ==="
+              cd /var/www/html
+              php artisan storage:link --force
+              php artisan config:cache
+              php artisan route:cache
+              php artisan view:cache
+              echo "=== Done ==="
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: pmbbim-storage
+      volumes:
+        - name: pmbbim-storage
+          persistentVolumeClaim:
+            claimName: pmbbim-nfspvc

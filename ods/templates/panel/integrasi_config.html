@@ -1,0 +1,92 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Integrasi API{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Integrasi API <small>koneksi ke Sistem Keuangan</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% if test_result %}
+        <div class="alert {% if test_result.ok %}alert-success{% else %}alert-warning{% endif %} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa {% if test_result.ok %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+            <strong>Tes Koneksi:</strong> {{ test_result.detail }}
+        </div>
+        {% endif %}
+
+        <div class="note note-info">
+            <p><i class="icon-info"></i> PMB Terpadu <strong>menghubungi</strong> Sistem Keuangan untuk
+            mengirim tagihan calon mahasiswa (pendaftaran &amp; daftar ulang) ke endpoint
+            <code>POST {base}/api/integrations/ods/tagihan/</code> dengan header
+            <code>X-API-Key</code>. Token di sini harus sama dengan
+            <code>ODS_INBOUND_TOKEN</code> pada Sistem Keuangan.</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><i class="fa fa-money"></i> Koneksi Keluar — Sistem Keuangan</div>
+                </div>
+                <div class="portlet-body">
+                    <div class="form-group">
+                        <label class="mt-checkbox mt-checkbox-outline">
+                            {{ form.keuangan_aktif }} Aktifkan pengiriman tagihan ke Sistem Keuangan
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Base URL Sistem Keuangan</label>
+                        {{ form.keuangan_api_base }}
+                        {% if form.keuangan_api_base.errors %}<span class="help-block text-danger">{{ form.keuangan_api_base.errors.0 }}</span>{% endif %}
+                        <span class="help-block">Mis. <code>https://keuangan.example.ac.id</code> (tanpa trailing path).</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label>API Key (X-API-Key)</label>
+                                {{ form.keuangan_ods_token }}
+                                {% if form.keuangan_ods_token.errors %}<span class="help-block text-danger">{{ form.keuangan_ods_token.errors.0 }}</span>{% endif %}
+                                <span class="help-block">Samakan dengan <code>ODS_INBOUND_TOKEN</code> di Sistem Keuangan.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Timeout (detik)</label>
+                                {{ form.keuangan_timeout }}
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        <small>Terakhir diperbarui: {{ obj.diperbarui|date:"d/m/Y H:i" }}</small>
+                    </p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" name="action" value="save" class="btn btn-primary">
+                    <i class="icon-check"></i> Simpan Konfigurasi
+                </button>
+                <button type="submit" name="action" value="test" class="btn btn-default">
+                    <i class="fa fa-plug"></i> Tes Koneksi
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

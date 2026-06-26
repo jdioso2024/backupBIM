@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "DevPassword123!"  # min 8 karakter, huruf besar + angka + simbol
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "DevPassword123!", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+
+  # Untuk testing image lokal mirip pola k8s (code dimount, bukan di-bake).
+  # Catatan: di k8s, /app di-mount dari NFS PVC. Di compose, dari host dir.
+  web:
+    build: .
+    image: pmb-terpadu:latest
+    restart: unless-stopped
+    env_file: .env
+    working_dir: /app
+    command: >
+      sh -c "pip install --quiet -r /app/requirements.txt &&
+             python /app/manage.py collectstatic --noinput &&
+             gunicorn pmb_terpadu.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mssql_data:

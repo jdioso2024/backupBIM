@@ -1,0 +1,233 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Kelola Prodi &amp; Kuota{% endblock %}
+
+{% block content %}
+<style>
+.kp-summary { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.kp-summary .card {
+    flex:1; min-width:180px; background:#fff; border:1px solid #eef0f5;
+    border-radius:8px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.kp-summary .card .lbl { font-size:11px; color:#8894a5; text-transform:uppercase;
+    letter-spacing:0.5px; font-weight:700; margin:0 0 4px 0; }
+.kp-summary .card .val { font-size:22px; color:#1e2a5e; font-weight:700; margin:0; line-height:1; }
+.kp-summary .card .sub { font-size:11px; color:#aab; margin-top:2px; }
+
+.kp-table { width:100%; border-collapse:collapse; background:#fff; }
+.kp-table thead th {
+    background:#f7f9fc; color:#8894a5; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    padding:12px 14px; border-bottom:2px solid #eef0f5;
+}
+.kp-table tbody td { padding:10px 14px; vertical-align:middle;
+    border-bottom:1px solid #f0f2f7; color:#1e2a5e; font-size:13px; }
+.kp-table tbody tr:hover { background:#f9fbff; }
+.kp-table .prodi-name { font-weight:600; }
+.kp-table .prodi-name small { color:#888; font-weight:400; }
+.kp-table .fak { color:#8894a5; font-size:12px; }
+.kp-table .num { font-weight:700; text-align:center; }
+.kp-table .num.zero { color:#c2c8d4; font-weight:400; }
+.kp-table .num.over { color:#c73248; }
+.kp-table input.kuota {
+    width:90px; text-align:right; padding:6px 8px; border:1px solid #d9dce3;
+    border-radius:6px; font-weight:700; color:#1e2a5e;
+}
+.kp-table input.kuota:focus { border-color:#7857d6; outline:none;
+    box-shadow:0 0 0 2px rgba(120,87,214,0.15); }
+.kp-table input.kuota.unset { background:#fff8e1; }
+
+.kp-bar-wrap { background:#f0f2f7; border-radius:99px; overflow:hidden; height:8px;
+    min-width:120px; }
+.kp-bar-fill { height:100%; border-radius:99px;
+    background:linear-gradient(90deg,#4e9af1,#2171dc); }
+.kp-bar-fill.over { background:linear-gradient(90deg,#ef5a6f,#c73248); }
+.kp-bar-fill.unset { background:#e0e3eb; }
+
+.kp-pct { font-size:11px; color:#8894a5; margin-top:2px; }
+.kp-pct.over { color:#c73248; font-weight:700; }
+
+.kp-status { font-size:11px; padding:2px 8px; border-radius:99px;
+    font-weight:700; display:inline-block; }
+.kp-status.aktif    { background:#e9f9f1; color:#1fa67a; }
+.kp-status.nonaktif { background:#f0f2f7; color:#8894a5; }
+
+.kp-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.kp-toolbar .form-control, .kp-toolbar select { display:inline-block; width:auto; }
+.kp-sticky-save {
+    position:sticky; bottom:0; background:#fff; padding:12px;
+    border-top:2px solid #eef0f5; text-align:right; z-index:5;
+}
+</style>
+
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Kelola Prodi &amp; Kuota Pendaftar</h1></div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="kp-summary">
+            <div class="card">
+                <p class="lbl">Total Prodi</p>
+                <p class="val">{{ summary.jml_prodi }}</p>
+                <p class="sub">{{ summary.jml_aktif }} aktif</p>
+            </div>
+            <div class="card">
+                <p class="lbl">Belum Diset Kuota</p>
+                <p class="val" style="color:#d99122;">{{ summary.jml_unset }}</p>
+                <p class="sub">Dari prodi aktif</p>
+            </div>
+            <div class="card">
+                <p class="lbl">Total Kuota</p>
+                <p class="val" style="color:#1fa67a;">{{ summary.total_kuota }}</p>
+                <p class="sub">Akumulasi semua prodi aktif</p>
+            </div>
+            <div class="card">
+                <p class="lbl">Total Pendaftar</p>
+                <p class="val" style="color:#2171dc;">{{ summary.total_daftar }}</p>
+                <p class="sub">Semua jalur</p>
+            </div>
+        </div>
+
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-graduation-cap"></i> Kuota per Program Studi</div>
+            </div>
+            <div class="portlet-body">
+
+                <form method="GET" class="kp-toolbar">
+                    <input type="text" name="q" value="{{ q }}" class="form-control"
+                           placeholder="Cari nama / kode / FID..." style="width:240px;">
+                    <select name="fakultas" class="form-control">
+                        <option value="">— Semua Fakultas —</option>
+                        {% for f in fakultas_list %}
+                        <option value="{{ f }}" {% if f == fakultas_f %}selected{% endif %}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="jenjang" class="form-control">
+                        <option value="">— Semua Jenjang —</option>
+                        {% for j in jenjang_list %}
+                        <option value="{{ j }}" {% if j == jenjang_f %}selected{% endif %}>{{ j }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="show" class="form-control">
+                        <option value="">— Semua —</option>
+                        <option value="unset" {% if show_only == 'unset' %}selected{% endif %}>Belum diset kuota</option>
+                        <option value="over"  {% if show_only == 'over'  %}selected{% endif %}>Pendaftar melebihi kuota</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Saring</button>
+                    {% if q or fakultas_f or jenjang_f or show_only %}
+                    <a href="{% url 'panel:kelola_prodi_list' %}" class="btn btn-default">Reset</a>
+                    {% endif %}
+                </form>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="table-responsive">
+                    <table class="kp-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30%;">Program Studi</th>
+                                <th>Fakultas</th>
+                                <th style="width:60px; text-align:center;">Jenjang</th>
+                                <th style="width:80px; text-align:center;">Status</th>
+                                <th style="width:90px; text-align:center;">Pendaftar</th>
+                                <th style="width:120px; text-align:center;">Kuota</th>
+                                <th style="width:200px;">Progress</th>
+                                <th style="width:80px; text-align:center;">Sisa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in rows %}
+                            <tr{% if r.over %} style="background:#fff5f6;"{% endif %}>
+                                <td class="prodi-name">
+                                    {{ r.obj.nama }}
+                                    <small>({{ r.obj.kode }})</small>
+                                </td>
+                                <td class="fak">{{ r.obj.fakultas }}</td>
+                                <td class="text-center"><span class="label label-info">{{ r.obj.jenjang }}</span></td>
+                                <td class="text-center">
+                                    {% if r.obj.aktif %}
+                                        <span class="kp-status aktif">Aktif</span>
+                                    {% else %}
+                                        <span class="kp-status nonaktif">Nonaktif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="num{% if not r.jumlah %} zero{% elif r.over %} over{% endif %}">
+                                    {{ r.jumlah }}
+                                </td>
+                                <td class="text-center">
+                                    <input type="number" name="kuota_{{ r.obj.pk }}"
+                                           class="kuota{% if r.unset %} unset{% endif %}"
+                                           value="{{ r.kuota }}" min="0" max="9999"
+                                           placeholder="0">
+                                </td>
+                                <td>
+                                    {% if r.kuota %}
+                                    <div class="kp-bar-wrap">
+                                        <div class="kp-bar-fill{% if r.over %} over{% endif %}"
+                                             style="width: {% if r.pct > 100 %}100{% else %}{{ r.pct }}{% endif %}%;"></div>
+                                    </div>
+                                    <div class="kp-pct{% if r.over %} over{% endif %}">
+                                        {{ r.pct }}% terisi
+                                        {% if r.over %} (lebih {{ r.lebih }}){% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="kp-bar-wrap">
+                                        <div class="kp-bar-fill unset" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="kp-pct">Kuota belum diset</div>
+                                    {% endif %}
+                                </td>
+                                <td class="num{% if r.sisa == None %} zero{% elif r.sisa == 0 %} over{% endif %}">
+                                    {% if r.sisa == None %}&mdash;{% else %}{{ r.sisa }}{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted" style="padding:24px;">
+                                    {% if q or fakultas_f or jenjang_f or show_only %}
+                                    Tidak ada prodi yang cocok dengan filter.
+                                    {% else %}
+                                    Belum ada data prodi.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+
+                    {% if rows %}
+                    <div class="kp-sticky-save">
+                        <span class="text-muted" style="margin-right:14px; font-size:12px;">
+                            <i class="fa fa-info-circle"></i> Ubah angka kuota di kolom <strong>Kuota</strong>,
+                            lalu klik <strong>Simpan</strong>. Baris kuning = kuota belum diset.
+                        </span>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa fa-save"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
+
+                <p class="text-muted" style="margin-top:14px; font-size:12px;">
+                    <i class="fa fa-info-circle"></i>
+                    Kuota mempengaruhi <strong>bar progress</strong> di dashboard
+                    (Pendaftar per Program Studi). Set <code>0</code> bila prodi tidak diberi target kuota PMB tahun berjalan.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

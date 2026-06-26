@@ -1,0 +1,147 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Import Pendaftar (CSV) — Panel Admin{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Import Pendaftar <small>dari file CSV</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}{% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}{% endif %}
+
+        <div class="row">
+            <!-- ── Langkah 1: Template ── -->
+            <div class="col-md-5">
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption">
+                            <i class="fa fa-download font-blue"></i>
+                            <span class="caption-subject bold uppercase">1. Unduh Template</span>
+                        </div>
+                    </div>
+                    <div class="portlet-body">
+                        <p>Unduh template CSV, isi sesuai data pendaftar, lalu unggah di langkah 2.</p>
+                        <a href="{% url 'panel:import_pendaftar_template' %}" class="btn btn-default">
+                            <i class="fa fa-file-excel-o"></i> Unduh template_pendaftar.csv
+                        </a>
+                        <hr>
+                        <p class="font-grey-mint" style="font-size:12px;">
+                            <strong>Wajib diisi:</strong> email, nama, nik (16 digit), prodi1.<br>
+                            Kolom <code>ttl</code> = "Tempat, Tanggal Lahir" gabungan (otomatis dipisah
+                            jika <code>tempat_lahir</code>/<code>tanggal_lahir</code> kosong).<br>
+                            Tanggal lahir bebas format (13 Oktober 2006 / 02-11-1987 / 2006-10-13).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Langkah 2: Upload ── -->
+            <div class="col-md-7">
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption">
+                            <i class="fa fa-upload font-green"></i>
+                            <span class="caption-subject bold uppercase">2. Unggah CSV</span>
+                        </div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>File CSV</label>
+                                <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Jalur default <small>(jika kolom jalur kosong)</small></label>
+                                <select name="default_jalur" class="form-control">
+                                    <option value="raport" selected>Jalur Raport</option>
+                                    <option value="beasiswa">Jalur Beasiswa</option>
+                                    <option value="umum">Jalur Umum</option>
+                                </select>
+                            </div>
+                            <div class="checkbox-list">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="dry_run" value="1" checked>
+                                    <strong>Preview dulu</strong> (tidak menyimpan)
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="allow_empty_nik" value="1">
+                                    Izinkan NIK kosong
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="force_refresh" value="1">
+                                    Timpa data lama (email/NIK sama)
+                                </label>
+                            </div>
+                            <hr>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-cogs"></i> Proses
+                            </button>
+                            <span class="help-block" style="font-size:12px;">
+                                Biarkan <strong>Preview</strong> tercentang untuk uji coba lebih dulu,
+                                lalu hilangkan centang untuk menyimpan ke database.
+                            </span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Hasil ── -->
+        {% if report %}
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-list font-purple"></i>
+                    <span class="caption-subject bold uppercase">
+                        Hasil {% if report.dry_run %}(Preview){% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="row" style="margin-bottom:15px;">
+                    <div class="col-xs-3"><span class="label label-success">Berhasil</span> {{ report.imported }}</div>
+                    <div class="col-xs-3"><span class="label label-default">Sudah ada</span> {{ report.skipped_existing }}</div>
+                    <div class="col-xs-3"><span class="label label-warning">Tidak valid</span> {{ report.skipped_invalid }}</div>
+                    <div class="col-xs-3"><span class="label label-danger">Error</span> {{ report.errored }}</div>
+                </div>
+                <div class="table-scrollable">
+                    <table class="table table-bordered table-condensed table-hover">
+                        <thead>
+                            <tr><th>#</th><th>Pendaftar</th><th>Status</th><th>Keterangan</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for r in report.rows %}
+                            <tr>
+                                <td>{{ r.index }}</td>
+                                <td>{{ r.label }}</td>
+                                <td>
+                                    {% if r.status == 'imported' %}<span class="label label-success">OK</span>
+                                    {% elif r.status == 'skipped_existing' %}<span class="label label-default">Sudah ada</span>
+                                    {% elif r.status == 'skipped_invalid' %}<span class="label label-warning">Tidak valid</span>
+                                    {% else %}<span class="label label-danger">Error</span>{% endif %}
+                                </td>
+                                <td>
+                                    {{ r.message }}
+                                    {% if r.warnings %}<br><small class="font-yellow-gold">⚠ {{ r.warnings|join:"; " }}</small>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

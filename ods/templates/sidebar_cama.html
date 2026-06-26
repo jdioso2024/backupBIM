@@ -1,0 +1,101 @@
+{% load static %}
+<div class="page-container">
+    <div class="page-sidebar-wrapper">
+        <div class="page-sidebar navbar-collapse collapse">
+            <ul class="page-sidebar-menu" data-keep-expanded="false" data-auto-scroll="true" data-slide-speed="200">
+                <li class="heading"><h3 class="uppercase">
+                    {% if request.user.pendaftar.jalur == 'raport' %}Jalur Raport
+                    {% elif request.user.pendaftar.jalur == 'beasiswa' %}Jalur Beasiswa
+                    {% else %}Jalur Umum{% endif %}
+                </h3></li>
+
+                <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'dashboard' %}" class="nav-link">
+                        <i class="icon-home"></i><span class="title">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Lengkapi Data</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'data_diri' %}active{% endif %}">
+                    <a href="{% url 'data_diri' %}" class="nav-link">
+                        <i class="icon-user"></i><span class="title">Data Diri</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'upload_ktp' %}active{% endif %}">
+                    <a href="{% url 'upload_ktp' %}" class="nav-link">
+                        <i class="icon-picture"></i><span class="title">Foto &amp; Scan KTP</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'data_sekolah' %}active{% endif %}">
+                    <a href="{% url 'data_sekolah' %}" class="nav-link">
+                        <i class="icon-graduation"></i><span class="title">Data Sekolah</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'data_ortu' %}active{% endif %}">
+                    <a href="{% url 'data_ortu' %}" class="nav-link">
+                        <i class="icon-users"></i><span class="title">Data Orang Tua</span>
+                    </a>
+                </li>
+
+                {% with jalur=request.user.pendaftar.jalur %}
+                {% if jalur == 'raport' %}
+                <li class="nav-item {% if request.resolver_match.url_name == 'raport_tambah_nilai' or request.resolver_match.url_name == 'raport_hapus_nilai' %}active{% endif %}">
+                    <a href="{% url 'raport_tambah_nilai' %}" class="nav-link">
+                        <i class="icon-pencil"></i><span class="title">Isi Nilai Raport</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'raport_berkas' %}active{% endif %}">
+                    <a href="{% url 'raport_berkas' %}" class="nav-link">
+                        <i class="icon-doc"></i><span class="title">Upload Berkas Raport</span>
+                    </a>
+                </li>
+                {% elif jalur == 'beasiswa' %}
+                <li class="nav-item {% if request.resolver_match.url_name == 'beasiswa_berkas' %}active{% endif %}">
+                    <a href="{% url 'beasiswa_berkas' %}" class="nav-link">
+                        <i class="icon-doc"></i><span class="title">Upload Berkas Beasiswa</span>
+                    </a>
+                </li>
+
+                {% elif jalur == 'umum' %}
+                <li class="nav-item {% if request.resolver_match.url_name == 'umum_daftar' %}active{% endif %}">
+                    <a href="{% url 'umum_daftar' %}" class="nav-link">
+                        <i class="icon-check"></i><span class="title">Konfirmasi Pendaftaran</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% endwith %}
+
+                <li class="heading"><h3 class="uppercase">Status</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'pantau_status' %}active{% endif %}">
+                    <a href="{% url 'pantau_status' %}" class="nav-link">
+                        <i class="icon-magnifier"></i><span class="title">Pantau Status</span>
+                    </a>
+                </li>
+
+                {% if request.user.pendaftar.registrasi %}
+                <li class="heading"><h3 class="uppercase">Registrasi</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'pilih_kelas' %}active{% endif %}">
+                    <a href="{% url 'pilih_kelas' %}" class="nav-link">
+                        <i class="icon-graduation"></i>
+                        <span class="title">Pilih Kelas</span>
+                        {% if not request.user.pendaftar.registrasi.kelas %}
+                        <span class="badge badge-warning">!</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'registrasi' %}active{% endif %}">
+                    <a href="{% url 'registrasi' %}" class="nav-link">
+                        <i class="icon-cloud-upload"></i><span class="title">Upload Berkas Registrasi</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <li class="heading"><h3 class="uppercase">Akun</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'ganti_password' %}active{% endif %}">
+                    <a href="{% url 'ganti_password' %}" class="nav-link">
+                        <i class="icon-key"></i><span class="title">Ganti Password</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>

@@ -1,0 +1,47 @@
+# Dependencies
+/app/vendor/
+/app/node_modules/
+**/vendor/
+**/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.scripts.example
+*.env
+
+# Laravel storage / cache
+/app/storage/*.key
+/app/storage/framework/cache/*
+/app/storage/framework/sessions/*
+/app/storage/framework/views/*
+/app/storage/logs/*
+/app/bootstrap/cache/*
+
+# User-uploaded content (applicant PII / runtime data)
+/app/storage/app/public/
+/app/public/storage
+
+# Build output
+/app/public/build/
+/app/public/hot
+
+# Database dumps & backups
+*.sql
+*.bak
+backup_*
+
+# Local SQLite database (berisi data seed / PII — jangan commit)
+*.sqlite
+*.sqlite-journal
+
+# Local dev helpers (machine-specific)
+/app/.localdev/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

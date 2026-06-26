@@ -1,0 +1,357 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Detail {{ pendaftar.nama }}{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Detail Pendaftaran <small>{{ pendaftar.no_daftar }}</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }}"><button class="close" data-dismiss="alert"></button>{{ m }}</div>{% endfor %}{% endif %}
+
+        <a href="{% url 'panel:cari_cama' %}" class="btn default" style="margin-bottom:15px;">
+            <i class="fa fa-arrow-left"></i> Kembali ke Pencarian
+        </a>
+
+        <div class="row">
+            <div class="col-md-7">
+                <!-- Data Diri -->
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-user"></i> Data Diri</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-bordered table-condensed">
+                            <tr><th width="35%">No. Daftar</th><td><strong>{{ pendaftar.no_daftar }}</strong></td></tr>
+                            <tr><th>Nama</th><td>{{ pendaftar.nama }}</td></tr>
+                            <tr><th>Jalur Pendaftaran</th><td>
+                                {% if pendaftar.jalur == 'raport' %}<span class="label label-info">{{ pendaftar.get_jalur_display }}</span>
+                                {% elif pendaftar.jalur == 'beasiswa' %}<span class="label label-warning">{{ pendaftar.get_jalur_display }}</span>
+                                {% elif pendaftar.jalur == 'umum' %}<span class="label label-success">{{ pendaftar.get_jalur_display }}</span>
+                                {% else %}{{ pendaftar.get_jalur_display }}{% endif %}
+                            </td></tr>
+                            <tr><th>NIK</th><td>{{ pendaftar.NIK|default:"-" }}</td></tr>
+                            <tr><th>No KK</th><td>{{ pendaftar.no_kk|default:"-" }}</td></tr>
+                            <tr><th>Jenis Kelamin</th><td>{{ pendaftar.get_jenis_kelamin_display }}</td></tr>
+                            <tr><th>Tempat / Tgl Lahir</th><td>{{ pendaftar.tempat_lahir }}, {{ pendaftar.tanggal_lahir|date:"d F Y"|default:"-" }}</td></tr>
+                            <tr><th>Agama</th><td>{{ pendaftar.agama|default:"-" }}</td></tr>
+                            <tr><th>No HP</th><td>{{ pendaftar.no_hp|default:"-" }}</td></tr>
+                            <tr><th>Email</th><td>{{ pendaftar.user.email|default:"-" }}</td></tr>
+                            <tr><th>Pilihan Prodi 1</th><td>{{ pendaftar.prodi1|default:"-" }}</td></tr>
+                            <tr><th>Pilihan Prodi 2</th><td>{{ pendaftar.prodi2|default:"-" }}</td></tr>
+                            <tr><th>Sumber Informasi</th><td>
+                                {% if pendaftar.sumber_info %}{{ pendaftar.get_sumber_info_display }}{% if pendaftar.sumber_info == 'marketing' and pendaftar.sumber_info_nama %} &mdash; <em>{{ pendaftar.sumber_info_nama }}</em>{% if pendaftar.sumber_info_hp %} (HP: {{ pendaftar.sumber_info_hp }}){% endif %}{% elif pendaftar.sumber_info == 'lainnya' and pendaftar.sumber_info_nama %} &mdash; <em>{{ pendaftar.sumber_info_nama }}</em>{% endif %}
+                                {% else %}-{% endif %}
+                            </td></tr>
+                            <tr><th>Tgl Daftar</th><td>{{ pendaftar.created_at|date:"d/m/Y H:i" }}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Alamat -->
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-map-marker"></i> Alamat</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if alamat %}
+                        <table class="table table-bordered table-condensed">
+                            <tr><th width="35%">Kewarganegaraan</th><td>{% if alamat.is_wna %}<span class="label label-warning">WNA</span>{% else %}<span class="label label-success">WNI</span>{% endif %}</td></tr>
+                            <tr><th>Jalan</th><td>{{ alamat.jalan }}</td></tr>
+                            <tr><th>RT / RW</th><td>{{ alamat.rt|default:"-" }} / {{ alamat.rw|default:"-" }}</td></tr>
+                            <tr><th>Kelurahan</th><td>{{ alamat.kelurahan }}</td></tr>
+                            <tr><th>Kota</th><td>{{ alamat.kota|default:"-" }}</td></tr>
+                            <tr><th>Provinsi</th><td>{{ alamat.provinsi|default:"-" }}</td></tr>
+                        </table>
+                        {% else %}<p class="text-muted">Data alamat belum diisi.</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Sekolah -->
+                <div class="portlet box yellow">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-graduation-cap"></i> Asal Sekolah</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if sekolah %}
+                        <table class="table table-bordered table-condensed">
+                            <tr><th width="35%">Nama Sekolah</th><td>{{ sekolah.nama }}</td></tr>
+                            <tr><th>Jurusan</th><td>{{ sekolah.jurusan }}</td></tr>
+                            <tr><th>NISN</th><td>{{ sekolah.nisn|default:"-" }}</td></tr>
+                            <tr><th>Akreditasi</th><td>{{ sekolah.akreditasi|default:"-" }}</td></tr>
+                            <tr><th>Tahun Lulus</th><td>{{ sekolah.tahun_lulus }}</td></tr>
+                        </table>
+                        {% else %}<p class="text-muted">Data sekolah belum diisi.</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Orang Tua -->
+                <div class="portlet box purple">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-users"></i> Orang Tua / Wali</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-bordered table-condensed">
+                            <thead><tr><th width="20%">Hubungan</th><th>Ayah</th><th>Ibu</th></tr></thead>
+                            <tr><th>Nama</th>
+                                <td>{{ ortu_ayah.nama|default:"-" }}</td>
+                                <td>{{ ortu_ibu.nama|default:"-" }}</td>
+                            </tr>
+                            <tr><th>Pendidikan</th>
+                                <td>{{ ortu_ayah.get_pendidikan_display|default:"-" }}</td>
+                                <td>{{ ortu_ibu.get_pendidikan_display|default:"-" }}</td>
+                            </tr>
+                            <tr><th>Pekerjaan</th>
+                                <td>{{ ortu_ayah.pekerjaan|default:"-" }}</td>
+                                <td>{{ ortu_ibu.pekerjaan|default:"-" }}</td>
+                            </tr>
+                            <tr><th>Penghasilan</th>
+                                <td>{% if ortu_ayah.penghasilan %}Rp {{ ortu_ayah.penghasilan|stringformat:"d" }}{% else %}-{% endif %}</td>
+                                <td>{% if ortu_ibu.penghasilan %}Rp {{ ortu_ibu.penghasilan|stringformat:"d" }}{% else %}-{% endif %}</td>
+                            </tr>
+                            <tr><th>No HP</th>
+                                <td>{{ ortu_ayah.no_hp|default:"-" }}</td>
+                                <td>{{ ortu_ibu.no_hp|default:"-" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <!-- Foto -->
+                {% if pendaftar.pas_foto %}
+                <div class="portlet light bordered">
+                    <div class="portlet-body text-center">
+                        <img src="{{ pendaftar.pas_foto.url }}" alt="Pas Foto"
+                             style="max-width:160px;max-height:200px;border:1px solid #ddd;padding:4px;">
+                        <div class="text-muted" style="margin-top:6px;font-size:11px;">Pas Foto</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reset Password Cama -->
+                {% if pendaftar.user %}
+                <div class="portlet box blue-hoki">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-key"></i> Reset Password Cama</div>
+                    </div>
+                    <div class="portlet-body">
+                        <p class="text-muted" style="margin-bottom:12px;">
+                            Atur ulang password login akun cama untuk
+                            <strong>{{ pendaftar.user.email|default:pendaftar.nama }}</strong>.
+                        </p>
+                        <button type="button" class="btn btn-info btn-block" data-toggle="modal"
+                                data-target="#modalResetPassword">
+                            <i class="fa fa-key"></i> Reset Password
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Reset Password -->
+                <div class="modal fade" id="modalResetPassword" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{% url 'panel:cari_cama_reset_password' pendaftar.pk %}"
+                                  id="formResetPassword">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                                    <h4 class="modal-title"><i class="fa fa-key"></i> Reset Password Cama</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning" style="margin-bottom:15px;">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        Password lama <strong>tidak bisa dikembalikan</strong>. Pastikan password baru
+                                        diinformasikan ke cama setelah disimpan.
+                                    </div>
+                                    <table class="table table-condensed" style="margin-bottom:15px;">
+                                        <tr><th width="35%" style="border:0;">Nama</th><td style="border:0;">{{ pendaftar.nama }}</td></tr>
+                                        <tr><th style="border:0;padding-top:0;">Email</th><td style="border:0;padding-top:0;">{{ pendaftar.user.email|default:"-" }}</td></tr>
+                                    </table>
+                                    <div class="form-group">
+                                        <label>Password Baru <span class="text-danger">*</span>
+                                            <small class="text-muted">(min 6 karakter)</small></label>
+                                        <div class="input-group">
+                                            <input type="password" name="password" id="inputResetPassword"
+                                                   class="form-control" placeholder="Masukkan password baru"
+                                                   minlength="6" required autocomplete="new-password">
+                                            <span class="input-group-btn">
+                                                <button class="btn default" type="button" id="btnToggleResetPassword"
+                                                        title="Tampilkan / sembunyikan">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        {% if pendaftar.tanggal_lahir %}
+                                        <p style="margin-top:8px;">
+                                            <a href="javascript:;" id="btnPakaiTglLahir"
+                                               data-pwd="{{ pendaftar.tanggal_lahir|date:'dmY' }}">
+                                                <i class="fa fa-magic"></i> Pakai tanggal lahir
+                                                ({{ pendaftar.tanggal_lahir|date:'dmY' }})
+                                            </a>
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn default" data-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fa fa-key"></i> Simpan Password Baru
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Login As (Impersonation) — superuser only -->
+                {% if request.user.is_superuser %}
+                <div class="portlet box dark">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-user-secret"></i> Login As Cama</div>
+                    </div>
+                    <div class="portlet-body">
+                        <p class="text-muted" style="margin-bottom:10px;">
+                            Login sebagai <strong>{{ pendaftar.nama }}</strong> ({{ pendaftar.user.email }})
+                            untuk melihat dashboard / form cama dari sisi mereka. Anda bisa kembali ke
+                            akun admin kapan saja lewat tombol di banner atas.
+                        </p>
+                        <form method="POST" action="{% url 'panel:login_as' pendaftar.pk %}"
+                              onsubmit="return confirm('Login sebagai {{ pendaftar.nama|escapejs }}?\n\nSesi admin akan diganti dengan sesi cama. Aksi yang Anda lakukan akan tercatat sebagai cama tersebut.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-block">
+                                <i class="fa fa-sign-in"></i> Login As {{ pendaftar.nama }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Status Jalur -->
+                <div class="portlet box red">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-flag"></i> Status Jalur — {{ pendaftar.get_jalur_display }}</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if jalur_obj %}
+                        <table class="table table-bordered table-condensed">
+                            <tr><th width="40%">Tipe</th><td>{{ jalur_label }}</td></tr>
+                            <tr><th>Status</th><td><strong>{{ jalur_status }}</strong></td></tr>
+                            {% if jalur_obj.prodi_lulus %}
+                            <tr><th>Prodi Lulus</th><td>{{ jalur_obj.prodi_lulus }}</td></tr>
+                            {% endif %}
+                            {% if jalur_obj.diproses_oleh %}
+                            <tr><th>Diproses Oleh</th><td>{{ jalur_obj.diproses_oleh }}</td></tr>
+                            {% endif %}
+                            {% if jalur_obj.tgl_diproses %}
+                            <tr><th>Tgl Diproses</th><td>{{ jalur_obj.tgl_diproses|date:"d/m/Y H:i" }}</td></tr>
+                            {% endif %}
+                        </table>
+                        {% else %}
+                        <p class="text-muted">Cama belum mengisi data {{ pendaftar.get_jalur_display }}.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Registrasi -->
+                {% if registrasi %}
+                <div class="portlet box grey-cascade">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-id-card"></i> Registrasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-bordered table-condensed">
+                            <tr><th width="40%">Status</th><td>
+                                {% if registrasi.status == 0 %}<span class="label label-warning">Belum Daftar Ulang</span>
+                                {% elif registrasi.status == 1 %}<span class="label label-success">Sudah Daftar Ulang</span>
+                                {% elif registrasi.status == 2 %}<span class="label label-danger">Batal / Undur Diri</span>
+                                {% endif %}
+                            </td></tr>
+                            <tr><th>Kelas</th><td>{{ registrasi.get_kelas_display|default:"-" }}</td></tr>
+                            <tr><th>Prodi Lulus</th><td>{{ registrasi.prodi_lulus|default:"-" }}</td></tr>
+                            <tr><th>NIM</th><td>{% if registrasi.nim %}<strong class="text-success">{{ registrasi.nim }}</strong>{% else %}-{% endif %}</td></tr>
+                            <tr><th>Tgl Registrasi</th><td>{{ registrasi.tgl_registrasi|date:"d/m/Y H:i"|default:"-" }}</td></tr>
+                        </table>
+                        <a href="{% url 'panel:registrasi_set' registrasi.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fa fa-pencil"></i> Proses Registrasi
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Ganti Jalur -->
+                <div class="portlet box yellow-crusta">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-exchange"></i> Ganti Jalur Pendaftaran</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="alert alert-warning" style="margin-bottom:10px;">
+                            <strong><i class="fa fa-exclamation-triangle"></i> Perhatian!</strong>
+                            Mengganti jalur akan <strong>menghapus data jalur lama</strong>
+                            (berkas, status seleksi, kelulusan, dan registrasi). Cama wajib mengisi
+                            ulang data sesuai jalur baru. Aksi ini tidak bisa di-undo.
+                        </div>
+                        <form method="POST" onsubmit="return confirm('Yakin ganti jalur pendaftaran {{ pendaftar.nama|escapejs }}?\n\nData jalur lama (kelulusan & registrasi) akan dihapus permanen.');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="ganti_jalur">
+                            <div class="form-group">
+                                <label>Jalur Saat Ini</label>
+                                <input type="text" class="form-control" value="{{ pendaftar.get_jalur_display }}" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Jalur Tujuan</label>
+                                <select name="jalur_baru" class="form-control" required>
+                                    <option value="">-- Pilih Jalur Tujuan --</option>
+                                    {% for k, l in jalur_choices %}
+                                    {% if k != pendaftar.jalur %}
+                                    <option value="{{ k }}">{{ l }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fa fa-exchange"></i> Ganti Jalur
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block inlinescripts %}
+<script>
+(function () {
+    var input  = document.getElementById('inputResetPassword');
+    var toggle = document.getElementById('btnToggleResetPassword');
+    var fill   = document.getElementById('btnPakaiTglLahir');
+    if (toggle && input) {
+        toggle.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            toggle.querySelector('i').className = show ? 'fa fa-eye-slash' : 'fa fa-eye';
+        });
+    }
+    if (fill && input) {
+        fill.addEventListener('click', function () {
+            input.value = fill.getAttribute('data-pwd') || '';
+            input.focus();
+        });
+    }
+    // Auto-fokus ke input saat modal dibuka
+    if (window.jQuery) {
+        jQuery('#modalResetPassword').on('shown.bs.modal', function () {
+            if (input) input.focus();
+        });
+    }
+})();
+</script>
+{% endblock %}

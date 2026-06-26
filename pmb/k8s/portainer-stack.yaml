@@ -1,0 +1,120 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: pmbbim-nfs
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 10.3.11.52
+  share: /mnt/BAA/Archive
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+mountOptions:
+  - hard
+  - nfsvers=4.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pmbbim-nfspvc
+  namespace: default
+spec:
+  storageClassName: pmbbim-nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pmbbim
+  namespace: default
+  labels:
+    app: pmbbim
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pmbbim
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pmbbim
+    spec:
+      containers:
+        - name: laravel
+          image: haunans/pmbbim:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: pmbbim-storage
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /favicon.ico
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /favicon.ico
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: pmbbim-storage
+          persistentVolumeClaim:
+            claimName: pmbbim-nfspvc
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pmbbim-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pmbbim
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pmbbim-service
+  namespace: default
+spec:
+  selector:
+    app: pmbbim
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30084

@@ -1,0 +1,159 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Pantau Status - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-magnifier"></i> Status Seleksi — {{ pendaftar.get_jalur_display }}</div>
+                    </div>
+                    <div class="portlet-body text-center" style="padding:30px 20px;">
+                        {% if not status_obj %}
+                        <i class="fa fa-hourglass-half fa-4x text-muted" style="margin:20px 0;display:block;"></i>
+                        <h4 class="text-muted">Menunggu Upload Berkas</h4>
+                        <p class="text-muted">Pastikan semua data dan berkas sudah diupload.</p>
+
+                        {% elif pendaftar.jalur == 'raport' %}
+                            {% if status_obj.status == 0 %}
+                            <i class="fa fa-exclamation-triangle fa-4x text-warning" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-warning">Berkas Belum Lengkap</h4>
+                            <p class="text-muted">Silakan lengkapi dan upload berkas raport.</p>
+
+                            {% elif status_obj.status == 1 %}
+                            <i class="fa fa-search fa-4x" style="color:#5b9bd1;margin:20px 0;display:block;"></i>
+                            <h4 style="color:#5b9bd1;">Sedang Divalidasi</h4>
+                            <p class="text-muted">Berkas sedang dalam proses validasi oleh panitia. Mohon tunggu.</p>
+
+                            {% elif status_obj.status == 2 %}
+                            <i class="fa fa-clock-o fa-4x text-warning" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-warning">Lolos Seleksi Berkas</h4>
+                            <p class="text-muted">Berkas valid. Menunggu proses kelulusan dari tim seleksi.</p>
+
+                            {% elif status_obj.status == 3 %}
+                            <i class="fa fa-trophy fa-5x" style="color:#36c6d3;margin:20px 0;display:block;"></i>
+                            <h3 style="color:#36c6d3;"><strong>SELAMAT! ANDA LULUS</strong></h3>
+                            <p style="font-size:1.1em;">Program Studi: <strong style="color:#36c6d3;">{{ status_obj.prodi_lulus }}</strong></p>
+                            {% if status_obj.nilai_raport %}<p class="text-muted">Nilai Raport: <strong>{{ status_obj.nilai_raport }}</strong></p>{% endif %}
+                            {% if status_obj.tgl_diproses %}<p class="text-muted">Tanggal Lulus: {{ status_obj.tgl_diproses|date:"d M Y" }}</p>{% endif %}
+                            <div style="margin-top:20px;">
+                                <a href="{% url 'registrasi' %}" class="btn btn-success btn-lg uppercase" style="margin:5px;">
+                                    <i class="fa fa-check-square-o"></i> Upload Berkas &amp; Registrasi
+                                </a>
+                                <a href="{% url 'sertifikat_lulus_pdf' %}" target="_blank" class="btn btn-info btn-lg" style="margin:5px;">
+                                    <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                                </a>
+                            </div>
+
+                            {% elif status_obj.status == 4 %}
+                            <i class="fa fa-times-circle fa-4x text-danger" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-danger">Tidak Lulus Seleksi</h4>
+                            {% if status_obj.keterangan %}<div class="alert alert-danger" style="margin-top:15px;">{{ status_obj.keterangan }}</div>{% endif %}
+
+                            {% elif status_obj.status == 5 %}
+                            <i class="fa fa-wrench fa-4x text-warning" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-warning">Berkas Perlu Diperbaiki</h4>
+                            {% if status_obj.keterangan %}<div class="alert alert-warning" style="margin-top:15px;">{{ status_obj.keterangan }}</div>{% endif %}
+                            <a href="{% url 'raport_berkas' %}" class="btn btn-warning btn-lg uppercase" style="margin-top:15px;">
+                                <i class="fa fa-upload"></i> Perbaiki Berkas
+                            </a>
+                            {% endif %}
+
+                        {% elif pendaftar.jalur == 'beasiswa' %}
+                            {% if status_obj.status_seleksi == 0 %}
+                            <i class="fa fa-hourglass-half fa-4x text-muted" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-muted">Sedang Melengkapi Data</h4>
+
+                            {% elif status_obj.status_seleksi == 1 %}
+                            <i class="fa fa-search fa-4x" style="color:#5b9bd1;margin:20px 0;display:block;"></i>
+                            <h4 style="color:#5b9bd1;">Proses Seleksi</h4>
+                            <p class="text-muted">Berkas dalam proses seleksi oleh panitia.</p>
+
+                            {% elif status_obj.status_seleksi == 2 %}
+                            <i class="fa fa-clock-o fa-4x text-warning" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-warning">Terverifikasi</h4>
+                            <p class="text-muted">Menunggu hasil akhir.</p>
+
+                            {% elif status_obj.status_seleksi == 3 %}
+                            <i class="fa fa-trophy fa-5x" style="color:#36c6d3;margin:20px 0;display:block;"></i>
+                            <h3 style="color:#36c6d3;"><strong>SELAMAT! ANDA LOLOS</strong></h3>
+                            <p style="font-size:1.1em;">Program Studi: <strong style="color:#36c6d3;">{{ status_obj.prodi_lulus }}</strong></p>
+                            {% if status_obj.tgl_diproses %}<p class="text-muted">Tanggal Lolos: {{ status_obj.tgl_diproses|date:"d M Y" }}</p>{% endif %}
+                            <div style="margin-top:20px;">
+                                <a href="{% url 'registrasi' %}" class="btn btn-success btn-lg uppercase" style="margin:5px;">
+                                    <i class="fa fa-check-square-o"></i> Upload Berkas &amp; Registrasi
+                                </a>
+                                <a href="{% url 'sertifikat_lulus_pdf' %}" target="_blank" class="btn btn-info btn-lg" style="margin:5px;">
+                                    <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                                </a>
+                            </div>
+
+                            {% elif status_obj.status_seleksi == 4 %}
+                            <i class="fa fa-times-circle fa-4x text-danger" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-danger">Tidak Lolos Seleksi</h4>
+                            {% endif %}
+
+                        {% elif pendaftar.jalur == 'umum' %}
+                            {% if status_obj.status == 0 %}
+                            <i class="fa fa-clock-o fa-4x text-muted" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-muted">Menunggu Jadwal CBT</h4>
+                            <p class="text-muted">Informasi akan dikirim via email.</p>
+
+                            {% elif status_obj.status == 1 %}
+                            <i class="fa fa-hourglass-half fa-4x" style="color:#5b9bd1;margin:20px 0;display:block;"></i>
+                            <h4 style="color:#5b9bd1;">Menunggu Verifikasi</h4>
+
+                            {% elif status_obj.status == 2 %}
+                            <i class="fa fa-trophy fa-5x" style="color:#36c6d3;margin:20px 0;display:block;"></i>
+                            <h3 style="color:#36c6d3;"><strong>SELAMAT! ANDA LULUS</strong></h3>
+                            <p style="font-size:1.1em;">Program Studi: <strong style="color:#36c6d3;">{{ status_obj.prodi_lulus }}</strong></p>
+                            {% if status_obj.skor_cbt %}<p class="text-muted">Skor CBT: <strong>{{ status_obj.skor_cbt }}</strong></p>{% endif %}
+                            {% if status_obj.tgl_diproses %}<p class="text-muted">Tanggal Lulus: {{ status_obj.tgl_diproses|date:"d M Y" }}</p>{% endif %}
+                            <div style="margin-top:20px;">
+                                <a href="{% url 'registrasi' %}" class="btn btn-success btn-lg uppercase" style="margin:5px;">
+                                    <i class="fa fa-check-square-o"></i> Upload Berkas &amp; Registrasi
+                                </a>
+                                <a href="{% url 'sertifikat_lulus_pdf' %}" target="_blank" class="btn btn-info btn-lg" style="margin:5px;">
+                                    <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                                </a>
+                            </div>
+
+                            {% elif status_obj.status == 3 %}
+                            <i class="fa fa-times-circle fa-4x text-danger" style="margin:20px 0;display:block;"></i>
+                            <h4 class="text-danger">Tidak Lulus.</h4>
+                            {% endif %}
+                        {% endif %}
+
+                        <div style="margin-top:25px;">
+                            <a href="{% url 'dashboard' %}" class="btn btn-default">
+                                <i class="fa fa-arrow-left"></i> Kembali ke Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-list-ol"></i> Alur Seleksi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><i class="fa fa-pencil text-success"></i> Pendaftaran &amp; Isi Data</li>
+                            <li class="list-group-item"><i class="fa fa-upload text-info"></i> Upload Berkas</li>
+                            <li class="list-group-item"><i class="fa fa-search text-warning"></i> Validasi Panitia</li>
+                            <li class="list-group-item"><i class="fa fa-trophy text-success"></i> Pengumuman Kelulusan</li>
+                            <li class="list-group-item"><i class="fa fa-check-square-o text-success"></i> Upload Berkas Registrasi</li>
+                            <li class="list-group-item"><i class="fa fa-id-card text-info"></i> Verifikasi Admin &amp; NIM</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

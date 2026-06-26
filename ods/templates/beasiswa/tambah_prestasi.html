@@ -1,0 +1,48 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Tambah Prestasi - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-7">
+                <div class="portlet box yellow">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-trophy"></i> Tambah Prestasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Nama Prestasi <span class="text-danger">*</span></label>
+                                <div class="col-md-7">{{ form.nama }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Tingkat</label>
+                                <div class="col-md-4">{{ form.tingkat }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Tahun</label>
+                                <div class="col-md-3">{{ form.tahun }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">File Sertifikat <span class="text-danger">*</span></label>
+                                <div class="col-md-7">
+                                    {{ form.file }}
+                                    <span class="help-block">JPG / PNG / PDF, maks 5 MB</span>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn yellow uppercase"><i class="fa fa-save"></i> Simpan</button>
+                                <a href="{% url 'beasiswa_berkas' %}" class="btn default">Batal</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

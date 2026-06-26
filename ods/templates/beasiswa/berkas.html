@@ -1,0 +1,107 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Upload Berkas Beasiswa - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-9">
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-doc"></i> Upload Berkas Beasiswa</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="alert alert-info"><i class="fa fa-info-circle"></i> Upload semua berkas yang diperlukan sesuai jenis beasiswa. Format: JPG/PNG/PDF. Maks 10 MB per file.</div>
+                        <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Jenis Beasiswa</label>
+                                <div class="col-md-5">{{ form.jenis_beasiswa }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Batch</label>
+                                <div class="col-md-2">{{ form.batch }}</div>
+                            </div>
+                            <hr/>
+                            <table class="table table-bordered table-striped table-condensed">
+                                <thead>
+                                    <tr><th>Berkas</th><th>Upload / Ganti File</th><th width="100">Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Formulir Beasiswa</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.file_formulir }}</td>
+                                        <td align="center">{% if beasiswa.file_formulir %}<a href="{{ beasiswa.file_formulir.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Surat Keterangan Penghasilan Orang Tua</strong></td>
+                                        <td>{{ form.file_penghasilan }}</td>
+                                        <td align="center">{% if beasiswa.file_penghasilan %}<a href="{{ beasiswa.file_penghasilan.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Surat Rekomendasi Sekolah</strong></td>
+                                        <td>{{ form.file_rekomendasi }}</td>
+                                        <td align="center">{% if beasiswa.file_rekomendasi %}<a href="{{ beasiswa.file_rekomendasi.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Scan Raport</strong></td>
+                                        <td>{{ form.file_raport }}</td>
+                                        <td align="center">{% if beasiswa.file_raport %}<a href="{{ beasiswa.file_raport.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Sertifikat Prestasi</strong></td>
+                                        <td>{{ form.file_prestasi }}</td>
+                                        <td align="center">{% if beasiswa.file_prestasi %}<a href="{{ beasiswa.file_prestasi.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Sertifikat TOEFL / Bahasa Inggris</strong></td>
+                                        <td>{{ form.file_toefl }}</td>
+                                        <td align="center">{% if beasiswa.file_toefl %}<a href="{{ beasiswa.file_toefl.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="form-actions">
+                                <button type="submit" class="btn blue uppercase"><i class="fa fa-upload"></i> Simpan &amp; Upload</button>
+                                <a href="{% url 'dashboard' %}" class="btn default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Daftar Prestasi -->
+                <div class="portlet box yellow">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-trophy"></i> Data Prestasi</div>
+                        <div class="portlet-tools">
+                            <a href="{% url 'beasiswa_tambah_prestasi' %}" class="btn btn-sm yellow"><i class="fa fa-plus"></i> Tambah Prestasi</a>
+                        </div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if prestasi_list %}
+                        <table class="table table-bordered table-condensed">
+                            <thead><tr><th>Nama Prestasi</th><th>Tingkat</th><th>Tahun</th><th>File</th><th>Hapus</th></tr></thead>
+                            <tbody>
+                                {% for p in prestasi_list %}
+                                <tr>
+                                    <td>{{ p.nama }}</td>
+                                    <td>{{ p.get_tingkat_display }}</td>
+                                    <td>{{ p.tahun }}</td>
+                                    <td><a href="{{ p.file.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i></a></td>
+                                    <td><a href="{% url 'beasiswa_hapus_prestasi' p.pk %}" class="btn btn-xs btn-danger" onclick="return confirm('Hapus prestasi ini?')"><i class="fa fa-trash"></i></a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted">Belum ada data prestasi. <a href="{% url 'beasiswa_tambah_prestasi' %}">Tambah prestasi</a> jika ada.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

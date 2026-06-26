@@ -1,0 +1,176 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Dashboard - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>
+        {% endfor %}{% endif %}
+
+        {% if status_obj %}
+            {% if pendaftar.jalur == 'raport' %}
+                {% if status_obj.status == 3 %}
+                <div class="alert alert-success">
+                    <i class="fa fa-trophy"></i> <strong>Selamat! Anda dinyatakan LULUS</strong> pada program studi <strong>{{ status_obj.prodi_lulus }}</strong>.
+                    {% if has_registrasi and not pendaftar.registrasi.kelas %}
+                    <a href="{% url 'pilih_kelas' %}" class="btn btn-sm btn-warning margin-left-10"><i class="fa fa-graduation-cap"></i> Pilih Kelas Dulu</a>
+                    {% else %}
+                    <a href="{% url 'registrasi' %}" class="btn btn-sm btn-success margin-left-10"><i class="fa fa-upload"></i> Upload Berkas Registrasi</a>
+                    {% endif %}
+                </div>
+                {% elif status_obj.status == 2 %}
+                <div class="alert alert-warning"><i class="fa fa-clock-o"></i> Berkas <strong>Valid</strong>. Menunggu proses kelulusan dari tim seleksi.</div>
+                {% elif status_obj.status == 4 %}
+                <div class="alert alert-danger"><i class="fa fa-times-circle"></i> <strong>Tidak Lulus Seleksi.</strong> {% if status_obj.keterangan %}{{ status_obj.keterangan }}{% endif %}</div>
+                {% elif status_obj.status == 5 %}
+                <div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> <strong>Berkas perlu diperbaiki.</strong> {{ status_obj.keterangan }} <a href="{% url 'raport_berkas' %}" class="btn btn-sm yellow margin-left-10">Perbaiki</a></div>
+                {% elif status_obj.status == 1 %}
+                <div class="alert alert-info"><i class="fa fa-hourglass-half"></i> Berkas sedang divalidasi. Mohon tunggu.</div>
+                {% endif %}
+            {% elif pendaftar.jalur == 'beasiswa' %}
+                {% if status_obj.status_seleksi == 3 %}
+                <div class="alert alert-success">
+                    <i class="fa fa-trophy"></i> <strong>Selamat! Anda LOLOS</strong> seleksi beasiswa <strong>{{ status_obj.prodi_lulus }}</strong>.
+                    {% if has_registrasi and not pendaftar.registrasi.kelas %}
+                    <a href="{% url 'pilih_kelas' %}" class="btn btn-sm btn-warning margin-left-10"><i class="fa fa-graduation-cap"></i> Pilih Kelas Dulu</a>
+                    {% else %}
+                    <a href="{% url 'registrasi' %}" class="btn btn-sm btn-success margin-left-10"><i class="fa fa-upload"></i> Upload Berkas Registrasi</a>
+                    {% endif %}
+                </div>
+                {% elif status_obj.status_seleksi == 4 %}
+                <div class="alert alert-danger"><i class="fa fa-times-circle"></i> Maaf, Anda <strong>tidak lolos</strong> seleksi beasiswa.</div>
+                {% elif status_obj.status_seleksi == 1 %}
+                <div class="alert alert-info"><i class="fa fa-hourglass-half"></i> Berkas beasiswa sedang dalam proses seleksi.</div>
+                {% endif %}
+            {% elif pendaftar.jalur == 'umum' %}
+                {% if status_obj.status == 2 %}
+                <div class="alert alert-success">
+                    <i class="fa fa-trophy"></i> <strong>Selamat! Anda LULUS</strong> pada prodi <strong>{{ status_obj.prodi_lulus }}</strong>.
+                    {% if has_registrasi and not pendaftar.registrasi.kelas %}
+                    <a href="{% url 'pilih_kelas' %}" class="btn btn-sm btn-warning margin-left-10"><i class="fa fa-graduation-cap"></i> Pilih Kelas Dulu</a>
+                    {% else %}
+                    <a href="{% url 'registrasi' %}" class="btn btn-sm btn-success margin-left-10"><i class="fa fa-upload"></i> Upload Berkas Registrasi</a>
+                    {% endif %}
+                </div>
+                {% elif status_obj.status == 3 %}
+                <div class="alert alert-danger"><i class="fa fa-times-circle"></i> <strong>Tidak Lulus Seleksi.</strong></div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-user"></i> Data Pendaftaran</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-condensed table-light">
+                            <tr><td>No. Daftar</td><td><strong>{{ pendaftar.no_daftar }}</strong></td></tr>
+                            <tr><td>Nama</td><td><strong>{{ pendaftar.nama }}</strong></td></tr>
+                            <tr><td>Email</td><td>{{ pendaftar.user.email }}</td></tr>
+                            <tr><td>No HP</td><td>{{ pendaftar.no_hp|default:"-" }}</td></tr>
+                            <tr><td>Jalur</td><td><strong>{{ pendaftar.get_jalur_display }}</strong></td></tr>
+                            <tr><td>Prodi Pilihan 1</td><td>{{ pendaftar.prodi1|default:"-" }}</td></tr>
+                            <tr><td>Prodi Pilihan 2</td><td>{{ pendaftar.prodi2|default:"-" }}</td></tr>
+                            {% if nomor_va %}
+                            <tr>
+                                <td>No. Virtual Account</td>
+                                <td><span class="label label-info" style="font-size:13px; letter-spacing:1px;">{{ nomor_va }}</span>
+                                    <br><small class="text-muted">Gunakan nomor ini untuk pembayaran (DPP/SPP) via bank mitra.</small></td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-settings"></i> Kelengkapan Data &amp; Langkah Pendaftaran</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-hover table-bordered">
+                            <thead><tr class="uppercase"><th>No</th><th>Data</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td><td>Data Diri</td>
+                                    <td>{% if pendaftar.NIK %}<span class="label label-sm label-success">Sudah</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'data_diri' %}" class="btn btn-xs {% if pendaftar.NIK %}blue{% else %}purple{% endif %}">{% if pendaftar.NIK %}Edit{% else %}Lengkapi{% endif %}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2</td><td>Foto &amp; Scan KTP</td>
+                                    <td>{% if pendaftar.scan_ktp %}<span class="label label-sm label-success">Sudah</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'upload_ktp' %}" class="btn btn-xs {% if pendaftar.scan_ktp %}blue{% else %}purple{% endif %}">{% if pendaftar.scan_ktp %}Edit{% else %}Upload{% endif %}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>3</td><td>Data Sekolah</td>
+                                    <td>{% if has_sekolah %}<span class="label label-sm label-success">Sudah</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'data_sekolah' %}" class="btn btn-xs {% if has_sekolah %}blue{% else %}purple{% endif %}">{% if has_sekolah %}Edit{% else %}Lengkapi{% endif %}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>4</td><td>Data Orang Tua</td>
+                                    <td>{% if has_ortu %}<span class="label label-sm label-success">Sudah</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'data_ortu' %}" class="btn btn-xs {% if has_ortu %}blue{% else %}purple{% endif %}">{% if has_ortu %}Edit{% else %}Lengkapi{% endif %}</a></td>
+                                </tr>
+                                {% if pendaftar.jalur == 'raport' %}
+                                <tr>
+                                    <td>5</td><td>Isi Nilai Raport</td>
+                                    <td>{% if has_nilai %}<span class="label label-sm label-success">Ada ({{ jumlah_nilai }} nilai)</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'raport_tambah_nilai' %}" class="btn btn-xs {% if has_nilai %}blue{% else %}purple{% endif %}">{% if has_nilai %}Edit{% else %}Isi{% endif %}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>6</td><td>Upload Berkas Raport</td>
+                                    <td>{% if has_berkas %}<span class="label label-sm label-success">Terupload</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'raport_berkas' %}" class="btn btn-xs {% if has_berkas %}blue{% else %}purple{% endif %}">{% if has_berkas %}Edit{% else %}Upload{% endif %}</a></td>
+                                </tr>
+                                {% elif pendaftar.jalur == 'beasiswa' %}
+                                <tr>
+                                    <td>5</td><td>Upload Berkas Beasiswa</td>
+                                    <td>{% if has_berkas %}<span class="label label-sm label-success">Terupload</span>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    <td><a href="{% url 'beasiswa_berkas' %}" class="btn btn-xs {% if has_berkas %}blue{% else %}purple{% endif %}">{% if has_berkas %}Edit{% else %}Upload{% endif %}</a></td>
+                                </tr>
+                                {% elif pendaftar.jalur == 'umum' %}
+                                <tr>
+                                    <td>5</td><td>Konfirmasi Pendaftaran</td>
+                                    <td><span class="label label-sm label-info">Menunggu Jadwal CBT</span></td>
+                                    <td><a href="{% url 'umum_daftar' %}" class="btn btn-xs blue">Lihat</a></td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td>{% if pendaftar.jalur == 'umum' %}6{% else %}7{% endif %}</td>
+                                    <td>Pantau Status Seleksi</td>
+                                    <td>{% if status_obj %}
+                                        {% if pendaftar.jalur == 'beasiswa' %}
+                                        <span class="label label-sm label-info">{{ status_obj.get_status_seleksi_display }}</span>
+                                        {% else %}
+                                        <span class="label label-sm label-info">{{ status_obj.get_status_display }}</span>
+                                        {% endif %}
+                                    {% else %}<span class="label label-sm label-default">Menunggu</span>{% endif %}</td>
+                                    <td><a href="{% url 'pantau_status' %}" class="btn btn-xs blue">Cek Status</a></td>
+                                </tr>
+                                {% if has_registrasi %}
+                                <tr>
+                                    <td>{% if pendaftar.jalur == 'umum' %}7{% else %}8{% endif %}</td>
+                                    <td>Upload Berkas Registrasi</td>
+                                    <td>
+                                        {% if has_registrasi_selesai %}
+                                        <span class="label label-sm label-success">NIM: {{ nim }}</span>
+                                        {% else %}
+                                        <span class="label label-sm label-warning">Menunggu Verifikasi</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><a href="{% url 'registrasi' %}" class="btn btn-xs btn-success"><i class="fa fa-upload"></i> Upload Berkas</a></td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

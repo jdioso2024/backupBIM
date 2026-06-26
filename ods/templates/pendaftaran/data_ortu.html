@@ -1,0 +1,79 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Data Orang Tua - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-9">
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-users"></i> Data Orang Tua / Wali</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="POST" class="form-horizontal" novalidate>
+                            {% csrf_token %}
+                            {% if form_ayah.errors or form_ibu.errors %}
+                            <div class="alert alert-danger">
+                                <button class="close" data-dismiss="alert"></button>
+                                <strong>Periksa kembali isian:</strong>
+                                {{ form_ayah.errors }}
+                                {{ form_ibu.errors }}
+                            </div>
+                            {% endif %}
+                            <h4 class="form-section"><i class="fa fa-male"></i> Data Ayah</h4>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Nama Ayah</label>
+                                <div class="col-md-7">{{ form_ayah.nama }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Pendidikan Terakhir</label>
+                                <div class="col-md-4">{{ form_ayah.pendidikan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Pekerjaan</label>
+                                <div class="col-md-4">{{ form_ayah.pekerjaan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Penghasilan / Bulan</label>
+                                <div class="col-md-5">{{ form_ayah.penghasilan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">No HP Ayah</label>
+                                <div class="col-md-4">{{ form_ayah.no_hp }}</div>
+                            </div>
+                            <h4 class="form-section"><i class="fa fa-female"></i> Data Ibu</h4>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Nama Ibu</label>
+                                <div class="col-md-7">{{ form_ibu.nama }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Pendidikan Terakhir</label>
+                                <div class="col-md-4">{{ form_ibu.pendidikan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Pekerjaan</label>
+                                <div class="col-md-4">{{ form_ibu.pekerjaan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Penghasilan / Bulan</label>
+                                <div class="col-md-5">{{ form_ibu.penghasilan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">No HP Ibu</label>
+                                <div class="col-md-4">{{ form_ibu.no_hp }}</div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn green uppercase">Simpan</button>
+                                <a href="{% url 'dashboard' %}" class="btn default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

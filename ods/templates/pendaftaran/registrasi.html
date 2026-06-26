@@ -1,0 +1,236 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Registrasi Mahasiswa Baru - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}
+        <div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>
+        {% endfor %}{% endif %}
+
+        <div class="row">
+            <div class="col-md-9">
+                <div class="alert alert-success">
+                    <i class="fa fa-trophy"></i> Anda dinyatakan <strong>LULUS</strong>
+                    {% if prodi_lulus %}pada program studi <strong>{{ prodi_lulus }}</strong>{% endif %}.
+                    Lengkapi berkas registrasi berikut untuk mendapatkan NIM.
+                </div>
+
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-check"></i> Upload Berkas Registrasi</div>
+                    </div>
+                    <div class="portlet-body">
+
+                        {% if reg.status == 1 %}
+                        {# Registrasi sudah diverifikasi admin → tampilkan NIM #}
+                        <div class="text-center" style="padding:30px 20px;">
+                            <i class="fa fa-check-circle fa-4x" style="color:#36c6d3;"></i>
+                            <h4 style="margin-top:15px; color:#36c6d3;">Registrasi Selesai!</h4>
+                            <p class="text-muted">Nomor Induk Mahasiswa Anda</p>
+                            <h2 style="font-size:38px; font-weight:bold; letter-spacing:3px; color:#36c6d3;">
+                                {{ reg.nim }}
+                            </h2>
+                            {% if prodi_lulus %}<p class="text-muted">{{ prodi_lulus }}</p>{% endif %}
+                            {% if reg.tgl_registrasi %}
+                            <p class="text-muted" style="font-size:12px;">
+                                Terdaftar: {{ reg.tgl_registrasi|date:"d F Y, H:i" }}
+                            </p>
+                            {% endif %}
+                            {% if reg.catatan %}
+                            <div class="alert alert-info" style="margin-top:15px;">
+                                <i class="fa fa-info-circle"></i> {{ reg.catatan }}
+                            </div>
+                            {% endif %}
+                            <hr>
+                            <a href="{% url 'cetak_bukti_reg' %}" target="_blank"
+                               class="btn btn-success">
+                                <i class="fa fa-print"></i> Cetak Bukti Registrasi
+                            </a>
+                            <a href="{% url 'cetak_ktm' %}" target="_blank"
+                               class="btn btn-warning" style="margin-left:5px;">
+                                <i class="fa fa-id-card"></i> Cetak KTM
+                            </a>
+                            <a href="{% url 'sertifikat_lulus_pdf' %}" target="_blank"
+                               class="btn btn-info" style="margin-left:5px;">
+                                <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                            </a>
+                            <a href="{% url 'dashboard' %}" class="btn btn-default" style="margin-left:5px;">
+                                <i class="fa fa-home"></i> Kembali ke Dashboard
+                            </a>
+                        </div>
+
+                        {% else %}
+                        {# Belum diverifikasi → form upload #}
+                        <div class="alert alert-warning">
+                            <i class="fa fa-info-circle"></i>
+                            Upload semua dokumen yang diperlukan. NIM akan diberikan setelah admin memverifikasi berkas Anda.
+                        </div>
+
+                        {% if reg.catatan %}
+                        <div class="alert alert-info">
+                            <i class="fa fa-comment"></i> <strong>Catatan Admin:</strong> {{ reg.catatan }}
+                        </div>
+                        {% endif %}
+
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <table class="table table-bordered table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>Dokumen</th>
+                                        <th>Upload / Ganti File</th>
+                                        <th width="100" class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <strong>Pas Foto</strong> <span class="text-danger">*</span><br>
+                                            <small class="text-muted">Latar putih tampak depan (JPG/PNG)</small>
+                                        </td>
+                                        <td>{{ form.pas_foto }}</td>
+                                        <td class="text-center">
+                                            {% if reg.pas_foto %}<a href="{{ reg.pas_foto.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr><td colspan="3" class="active"><strong><i class="fa fa-money"></i> Bukti Pembayaran</strong></td></tr>
+                                    <tr>
+                                        <td><strong>Bukti Bayar Pendaftaran</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.bukti_bayar_pendaftaran }}</td>
+                                        <td class="text-center">
+                                            {% if reg.bukti_bayar_pendaftaran %}<a href="{{ reg.bukti_bayar_pendaftaran.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Bukti Bayar SKS</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.bukti_bayar_sks }}</td>
+                                        <td class="text-center">
+                                            {% if reg.bukti_bayar_sks %}<a href="{{ reg.bukti_bayar_sks.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Bukti Bayar Pengembangan</strong></td>
+                                        <td>{{ form.bukti_bayar_pengembangan }}</td>
+                                        <td class="text-center">
+                                            {% if reg.bukti_bayar_pengembangan %}<a href="{{ reg.bukti_bayar_pengembangan.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr><td colspan="3" class="active"><strong><i class="fa fa-file-text"></i> Dokumen Kelengkapan</strong></td></tr>
+                                    <tr>
+                                        <td><strong>Akte Kelahiran</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.akte_lahir }}</td>
+                                        <td class="text-center">
+                                            {% if reg.akte_lahir %}<a href="{{ reg.akte_lahir.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Ijazah / STTB</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.ijazah }}</td>
+                                        <td class="text-center">
+                                            {% if reg.ijazah %}<a href="{{ reg.ijazah.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>SKHUN</strong></td>
+                                        <td>{{ form.skhun }}</td>
+                                        <td class="text-center">
+                                            {% if reg.skhun %}<a href="{{ reg.skhun.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Kartu Keluarga</strong> <span class="text-danger">*</span></td>
+                                        <td>{{ form.kartu_keluarga }}</td>
+                                        <td class="text-center">
+                                            {% if reg.kartu_keluarga %}<a href="{{ reg.kartu_keluarga.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td colspan="3" class="active">
+                                            <strong><i class="fa fa-heartbeat"></i> Dokumen Kesehatan</strong>
+                                            <span class="text-muted">(wajib untuk prodi tertentu)</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Hasil Tes Kesehatan</strong></td>
+                                        <td>{{ form.hasil_tes_kesehatan }}</td>
+                                        <td class="text-center">
+                                            {% if reg.hasil_tes_kesehatan %}<a href="{{ reg.hasil_tes_kesehatan.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Hasil Tes MMPI-2</strong></td>
+                                        <td>{{ form.hasil_tes_mmpi2 }}</td>
+                                        <td class="text-center">
+                                            {% if reg.hasil_tes_mmpi2 %}<a href="{{ reg.hasil_tes_mmpi2.url }}" target="_blank" class="btn btn-xs btn-default"><i class="fa fa-file"></i> Lihat</a>
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success uppercase">
+                                    <i class="fa fa-upload"></i> Kirim Berkas Registrasi
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-default">Kembali</a>
+                            </div>
+                        </form>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-info-circle"></i> Info Pendaftar</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-condensed">
+                            <tr><th>No. Daftar</th><td><strong>{{ pendaftar.no_daftar }}</strong></td></tr>
+                            <tr><th>Nama</th><td>{{ pendaftar.nama }}</td></tr>
+                            {% if prodi_lulus %}<tr><th>Prodi</th><td><strong>{{ prodi_lulus }}</strong></td></tr>{% endif %}
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    {% if reg.status == 0 %}<span class="label label-warning">Menunggu Verifikasi</span>
+                                    {% elif reg.status == 1 %}<span class="label label-success">Terdaftar</span>
+                                    {% elif reg.status == 2 %}<span class="label label-danger">Batal</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% if reg.nim %}<tr><th>NIM</th><td><strong>{{ reg.nim }}</strong></td></tr>{% endif %}
+                        </table>
+                        {% if reg.status == 1 and reg.nim %}
+                        <div style="margin-top:10px;">
+                            <a href="{% url 'cetak_bukti_reg' %}" target="_blank" class="btn btn-success btn-block btn-sm">
+                                <i class="fa fa-print"></i> Cetak Bukti Registrasi
+                            </a>
+                            <a href="{% url 'cetak_ktm' %}" target="_blank" class="btn btn-warning btn-block btn-sm" style="margin-top:5px;">
+                                <i class="fa fa-id-card"></i> Cetak KTM
+                            </a>
+                            <a href="{% url 'sertifikat_lulus_pdf' %}" target="_blank" class="btn btn-info btn-block btn-sm" style="margin-top:5px;">
+                                <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

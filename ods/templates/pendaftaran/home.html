@@ -1,0 +1,232 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <title>Pendaftaran Mahasiswa Baru {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:tahun_ajaran }}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta content="Pendaftaran Calon Mahasiswa Baru {{ site.nama_universitas|default:'' }}" name="description"/>
+    <link href="{% static 'assets/global/plugins/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/simple-line-icons/simple-line-icons.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/components-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/plugins-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    {% if site.favicon %}
+    <link rel="shortcut icon" href="{{ site.favicon.url }}"/>
+    {% else %}
+    <link rel="shortcut icon" href="{% static 'global/img/favicon-ums.png' %}"/>
+    {% endif %}
+    <style>
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .background-ums {
+            background-image: linear-gradient(to top, rgba(128,154,220,0.5), rgba(128,154,220,0)),
+                              url("{% static 'img/background-ums.svg' %}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        .main-wrap { flex: 1 0 auto; }
+
+        .btn-biru   { background-color: #2f3185; color: #fff; border-color: #2f3185; }
+        .btn-biru:hover { background-color: #25276b; color: #fff; }
+
+        .jalur-header {
+            display: block;
+            background-color: #2f3185;
+            color: #fff !important;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 14px 10px;
+            text-decoration: none !important;
+            border-radius: 3px 3px 0 0;
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .jalur-buka:hover { background-color: #25276b; }
+        .jalur-tutup { background-color: #888; cursor: default; }
+
+        .jalur-body {
+            background-color: #f5c13a;
+            color: #000;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            padding: 18px 12px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 3px 3px;
+        }
+
+        .info-banner {
+            background-color: #2f3185;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            text-align: center;
+        }
+        .info-banner a { color: #f5c13a; font-weight: bold; }
+
+        .copyright {
+            flex-shrink: 0;
+            background-color: #2f3185; color: #fff;
+            text-align: center; padding: 10px 0; font-size: 13px;
+        }
+
+        .logo-wrap { text-align: center; padding: 20px 0 10px; }
+        .logo-wrap img { max-height: 90px; }
+        .logo-wrap h3 { margin-top: 10px; color: #2f3185; font-weight: bold; }
+
+        .portlet-home { border: 1px solid #ddd; border-radius: 4px; background: #fff; padding: 24px 30px; }
+        .portlet-home .title-utama {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2f3185;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2f3185;
+            padding-bottom: 12px;
+        }
+    </style>
+</head>
+<body class="background-ums">
+
+<div class="main-wrap">
+<div class="logo-wrap">
+    <a href="{% url 'home' %}">
+        {% if site.logo %}
+        <img src="{{ site.logo.url }}" alt="Logo {{ site.singkatan|default:'' }}"/>
+        {% else %}
+        <img src="{% static 'assets/pages/img/logo-ums-baru-kecil.png' %}" alt="Logo"/>
+        {% endif %}
+    </a>
+    <h3>Penerimaan Mahasiswa Baru {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:tahun_ajaran }}</h3>
+</div>
+
+<div style="max-width:860px; margin:0 auto; padding:0 15px;">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger">
+        <button class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="portlet-home">
+
+        <div class="title-utama">Pilih Jalur Pendaftaran</div>
+
+        <div class="info-banner">
+            Selamat datang di halaman pendaftaran Penerimaan Mahasiswa Baru
+            {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:tahun_ajaran }}.
+            Silahkan pilih jalur pendaftaran. Cermati informasi setiap jalur untuk menghindari kesalahan.
+            {% if site.website %}
+            Info lengkap: <a href="{{ site.website }}" target="_blank">{{ site.website }}</a>
+            {% endif %}
+        </div>
+
+        <!-- 3 Jalur dalam satu baris -->
+        <div style="display:flex; gap:16px; flex-wrap:nowrap;">
+
+            <!-- Jalur Raport -->
+            <div style="flex:1;">
+                {% if jalur_status.raport == '1' %}
+                <a href="{% url 'register' %}?jalur=raport" class="jalur-header jalur-buka">
+                    PENDAFTARAN JALUR NILAI RAPORT
+                </a>
+                {% else %}
+                <div class="jalur-header jalur-tutup">
+                    <i class="fa fa-lock"></i> JALUR RAPORT — DITUTUP
+                </div>
+                {% endif %}
+                <div class="jalur-body">
+                    Jalur pendaftaran ke jenjang S1 melalui nilai raport SMA/MA/SMK semester 1–5
+                    dan prestasi akademik.
+                </div>
+            </div>
+
+            <!-- Jalur Beasiswa -->
+            <div style="flex:1;">
+                {% if jalur_status.beasiswa == '1' %}
+                <a href="{% url 'register' %}?jalur=beasiswa" class="jalur-header jalur-buka">
+                    PENDAFTARAN JALUR BEASISWA
+                </a>
+                {% else %}
+                <div class="jalur-header jalur-tutup">
+                    <i class="fa fa-lock"></i> JALUR BEASISWA — DITUTUP
+                </div>
+                {% endif %}
+                <div class="jalur-body">
+                    Program beasiswa bagi siswa berprestasi dan kurang mampu secara ekonomi.
+                </div>
+            </div>
+
+            <!-- Jalur CBT / Umum -->
+            <div style="flex:1;">
+                {% if jalur_status.umum == '1' %}
+                <a href="{% url 'register' %}?jalur=umum" class="jalur-header jalur-buka">
+                    PENDAFTARAN JALUR TES CBT
+                </a>
+                {% else %}
+                <div class="jalur-header jalur-tutup">
+                    <i class="fa fa-lock"></i> JALUR CBT — DITUTUP
+                </div>
+                {% endif %}
+                <div class="jalur-body">
+                    Jalur pendaftaran ke jenjang S1 melalui tes Computer Based Test (CBT)
+                    di kampus {{ site.singkatan|default:"" }}.
+                </div>
+            </div>
+
+        </div>
+
+        <hr style="margin:20px 0;"/>
+
+        <div style="text-align:center;">
+            <a href="{% url 'login' %}" class="btn btn-lg btn-biru" style="min-width:260px;">
+                <i class="fa fa-sign-in"></i> Login — Sudah Punya Akun
+            </a>
+        </div>
+
+        <div class="text-center" style="margin-top:14px; font-size:13px; color:#888;">
+            {% if site.website %}
+            <a href="{{ site.website }}" target="_blank">
+                PMB {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:tahun_ajaran }}
+            </a>
+            {% else %}
+            PMB {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:tahun_ajaran }}
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+</div><!-- /.main-wrap -->
+
+<div class="copyright">
+    {% now "Y" %} &copy; {{ site.footer_copyright|default:"" }} &mdash; Pendaftaran Mahasiswa Baru
+</div>
+
+<script src="{% static 'assets/global/plugins/jquery.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/global/plugins/bootstrap/js/bootstrap.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/global/scripts/app.min.js' %}" type="text/javascript"></script>
+</body>
+</html>

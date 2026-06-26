@@ -1,0 +1,103 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Cari Calon Mahasiswa{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Cari Calon Mahasiswa <small>cari & lihat detail data pendaftaran cama</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }}"><button class="close" data-dismiss="alert"></button>{{ m }}</div>{% endfor %}{% endif %}
+
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-search"></i> Filter Pencarian</div>
+            </div>
+            <div class="portlet-body">
+                <form method="GET" class="form-inline">
+                    <input type="text" name="q" value="{{ q }}" class="form-control"
+                           placeholder="No. Daftar / Nama / NIK / No HP / Email"
+                           style="width:340px;">
+                    <select name="jalur" class="form-control" style="margin-left:10px;">
+                        <option value="">-- Semua Jalur --</option>
+                        {% for k, l in jalur_choices %}
+                        <option value="{{ k }}" {% if jalur_filter == k %}selected{% endif %}>{{ l }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="margin-left:10px;">
+                        <i class="fa fa-search"></i> Cari
+                    </button>
+                    {% if q or jalur_filter %}
+                    <a href="{% url 'panel:cari_cama' %}" class="btn default" style="margin-left:5px;">
+                        <i class="fa fa-times"></i> Reset
+                    </a>
+                    {% endif %}
+                </form>
+                <div class="text-muted" style="margin-top:8px;font-size:12px;">
+                    Hasil dibatasi 200 data terbaru. Gunakan filter untuk hasil lebih spesifik.
+                </div>
+            </div>
+        </div>
+
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <div class="table-scrollable">
+                    <table class="table table-hover table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>No. Daftar</th>
+                                <th>Nama</th>
+                                <th>NIK</th>
+                                <th>Jalur</th>
+                                <th>Pilihan Prodi</th>
+                                <th>No HP</th>
+                                <th>Email</th>
+                                <th>Tgl Daftar</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in object_list %}
+                            <tr>
+                                <td><strong>{{ p.no_daftar }}</strong></td>
+                                <td>{{ p.nama }}</td>
+                                <td>{{ p.NIK|default:"-" }}</td>
+                                <td>
+                                    {% if p.jalur == 'raport' %}<span class="label label-info">Raport</span>
+                                    {% elif p.jalur == 'beasiswa' %}<span class="label label-warning">Beasiswa</span>
+                                    {% elif p.jalur == 'umum' %}<span class="label label-success">Umum</span>
+                                    {% else %}<span class="label label-default">{{ p.jalur }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    {{ p.prodi1|default:"-" }}
+                                    {% if p.prodi2 %}<br><small class="text-muted">{{ p.prodi2 }}</small>{% endif %}
+                                </td>
+                                <td>{{ p.no_hp|default:"-" }}</td>
+                                <td><small>{{ p.user.email|default:"-" }}</small></td>
+                                <td><small>{{ p.created_at|date:"d/m/Y H:i" }}</small></td>
+                                <td>
+                                    <a href="{% url 'panel:cari_cama_detail' p.pk %}" class="btn btn-xs btn-primary">
+                                        <i class="fa fa-eye"></i> Detail
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">
+                                    {% if q or jalur_filter %}Tidak ditemukan cama dengan filter tersebut.
+                                    {% else %}Belum ada data pendaftar.{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

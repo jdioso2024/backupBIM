@@ -1,0 +1,210 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Data Diri - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-9">
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-user"></i> Data Diri &amp; Pilihan Program Studi</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if form_diri.errors or form_alamat.errors %}
+                        <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> Ada kesalahan input. Periksa kembali data yang diisi.</div>
+                        {% endif %}
+                        <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Nama Lengkap</label>
+                                <div class="col-md-9">{{ form_diri.nama }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Jenis Kelamin</label>
+                                <div class="col-md-4">{{ form_diri.jenis_kelamin }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">NIK</label>
+                                <div class="col-md-6">{{ form_diri.NIK }}<span class="help-block">16 digit Nomor Induk Kependudukan</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">No. Kartu Keluarga</label>
+                                <div class="col-md-6">{{ form_diri.no_kk }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Tempat Lahir</label>
+                                <div class="col-md-6">{{ form_diri.tempat_lahir }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Tanggal Lahir</label>
+                                <div class="col-md-4">{{ form_diri.tanggal_lahir }}<span class="help-block">Format: dd/mm/yyyy</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Agama</label>
+                                <div class="col-md-4">{{ form_diri.agama }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">No HP / WhatsApp</label>
+                                <div class="col-md-5">{{ form_diri.no_hp }}<span class="help-block">Format: 081234567890</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Dapat informasi PMB dari</label>
+                                <div class="col-md-9">
+                                    {% for radio in form_diri.sumber_info %}
+                                        <label class="radio-inline">{{ radio.tag }} {{ radio.choice_label }}</label>
+                                    {% endfor %}
+                                    {% if form_diri.sumber_info.errors %}<span class="help-block text-danger">{{ form_diri.sumber_info.errors|join:", " }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="form-group js-sumber-nama">
+                                <label class="col-md-3 control-label" id="label-sumber-nama">Nama Marketing/Perekom</label>
+                                <div class="col-md-6">
+                                    {{ form_diri.sumber_info_nama }}
+                                    {% if form_diri.sumber_info_nama.errors %}<span class="help-block text-danger">{{ form_diri.sumber_info_nama.errors|join:", " }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="form-group js-sumber-hp">
+                                <label class="col-md-3 control-label">No. HP</label>
+                                <div class="col-md-5">
+                                    {{ form_diri.sumber_info_hp }}
+                                    {% if form_diri.sumber_info_hp.errors %}<span class="help-block text-danger">{{ form_diri.sumber_info_hp.errors|join:", " }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <hr/>
+                            <h4 class="form-section"><i class="fa fa-map-marker"></i> Alamat</h4>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Kewarganegaraan</label>
+                                <div class="col-md-6">
+                                    {% for radio in form_alamat.is_wna %}
+                                        <label class="radio-inline">{{ radio.tag }} {{ radio.choice_label }}</label>
+                                    {% endfor %}
+                                    <span class="help-block">Pilih WNA jika berdomisili di luar Indonesia &mdash; kolom Provinsi &amp; Kota akan dilewati.</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Jalan</label>
+                                <div class="col-md-9">{{ form_alamat.jalan }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">RT / RW</label>
+                                <div class="col-md-2">{{ form_alamat.rt }}</div>
+                                <div class="col-md-2">{{ form_alamat.rw }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Kelurahan</label>
+                                <div class="col-md-5">{{ form_alamat.kelurahan }}</div>
+                            </div>
+                            <div class="form-group js-wni-only">
+                                <label class="col-md-3 control-label">Provinsi</label>
+                                <div class="col-md-5">
+                                    <select name="provinsi" id="id_provinsi" class="form-control">
+                                        <option value="">---------</option>
+                                        {% for p in provinsi_list %}
+                                        <option value="{{ p.id }}"
+                                            {% if form_alamat.provinsi.value|stringformat:'s' == p.id|stringformat:'s' %}selected{% endif %}>{{ p.nama }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group js-wni-only">
+                                <label class="col-md-3 control-label">Kota / Kabupaten</label>
+                                <div class="col-md-5">
+                                    <select name="kota" id="id_kota" class="form-control">
+                                        <option value="">---------</option>
+                                        {% for k in kota_list %}
+                                        <option value="{{ k.id }}" data-prov="{{ k.provinsi_id }}"
+                                            {% if form_alamat.kota.value|stringformat:'s' == k.id|stringformat:'s' %}selected{% endif %}>{{ k.nama }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="help-block">Pilih Provinsi dulu agar daftar Kota/Kabupaten terfilter.</span>
+                                </div>
+                            </div>
+                            <hr/>
+                            <h4 class="form-section"><i class="fa fa-university"></i> Pilihan Program Studi</h4>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Prodi Pilihan 1</label>
+                                <div class="col-md-7">{{ form_diri.prodi1 }}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Prodi Pilihan 2</label>
+                                <div class="col-md-7">{{ form_diri.prodi2 }}<span class="help-block">Opsional</span></div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn green uppercase">Simpan Data</button>
+                                <a href="{% url 'dashboard' %}" class="btn default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block inlinescripts %}
+<script>
+$(document).ready(function() {
+    $('.datepicker').datepicker({ format: 'dd/mm/yyyy', changeMonth: true, changeYear: true, autoclose: true });
+    $('.select2').select2();
+
+    function toggleWnaFields() {
+        var isWna = $('input[name="is_wna"]:checked').val() === '1';
+        $('.js-wni-only').toggle(!isWna);
+        if (isWna) {
+            $('#id_kota').val('').trigger('change');
+            $('#id_provinsi').val('').trigger('change');
+        }
+    }
+    $('input[name="is_wna"]').on('change', toggleWnaFields);
+    toggleWnaFields();
+
+    // Cascading: filter Kota/Kabupaten berdasarkan Provinsi terpilih.
+    function filterKota(resetKota) {
+        var prov = $('#id_provinsi').val();
+        var $kota = $('#id_kota');
+        $kota.find('option').each(function() {
+            var opt = $(this);
+            if (opt.val() === '') { return; }            // opsi kosong selalu tampil
+            var cocok = (prov && opt.data('prov') == prov);
+            opt.prop('hidden', !cocok).prop('disabled', !cocok);
+        });
+        // Reset pilihan kota jika tidak sesuai provinsi (atau provinsi dikosongkan).
+        if (resetKota) {
+            var selected = $kota.find('option:selected');
+            if (!prov || selected.val() === '' || selected.data('prov') != prov) {
+                $kota.val('');
+            }
+        }
+        $kota.prop('disabled', !prov);
+    }
+    $('#id_provinsi').on('change', function() { filterKota(true); });
+    filterKota(false);   // saat load: tampilkan hanya kota dari provinsi tersimpan
+
+    function toggleSumberInfo() {
+        var val = $('input[name="sumber_info"]:checked').val();
+        var isMarketing = val === 'marketing';
+        var isLainnya   = val === 'lainnya';
+        var showNama    = isMarketing || isLainnya;
+
+        $('.js-sumber-nama').toggle(showNama);
+        $('.js-sumber-hp').toggle(isMarketing);
+
+        if (isLainnya) {
+            $('#label-sumber-nama').text('Dari');
+            $('#id_sumber_info_nama').attr('placeholder', 'Dari ....');
+        } else {
+            $('#label-sumber-nama').text('Nama Marketing/Perekom');
+            $('#id_sumber_info_nama').attr('placeholder', 'Nama Marketing / Perekomendasi');
+        }
+
+        if (!showNama)    { $('#id_sumber_info_nama').val(''); }
+        if (!isMarketing) { $('#id_sumber_info_hp').val(''); }
+    }
+    $('input[name="sumber_info"]').on('change', toggleSumberInfo);
+    toggleSumberInfo();
+});
+</script>
+{% endblock %}

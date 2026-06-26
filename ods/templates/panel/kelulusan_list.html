@@ -1,0 +1,322 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Proses Kelulusan{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Proses Kelulusan</h1></div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Tab Jalur -->
+        <div class="btn-group" style="margin-bottom:15px;">
+            <a href="?jalur=raport" class="btn btn-sm {% if jalur == 'raport' %}btn-primary{% else %}btn-default{% endif %}">
+                <i class="icon-layers"></i> Raport
+            </a>
+            <a href="?jalur=beasiswa" class="btn btn-sm {% if jalur == 'beasiswa' %}btn-primary{% else %}btn-default{% endif %}">
+                <i class="fa fa-star"></i> Beasiswa
+            </a>
+            <a href="?jalur=umum" class="btn btn-sm {% if jalur == 'umum' %}btn-primary{% else %}btn-default{% endif %}">
+                <i class="fa fa-desktop"></i> Umum / CBT
+            </a>
+        </div>
+
+        {% if jalur == 'raport' %}
+        {# ============================================================ #}
+        {#  RAPORT: filter Prodi + Passing Grade + bulk processing       #}
+        {# ============================================================ #}
+
+        <!-- Filter -->
+        <div class="portlet box green">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-filter"></i> Filter Program Studi &amp; Passing Grade</div>
+            </div>
+            <div class="portlet-body">
+                <form method="GET" class="form-inline">
+                    <input type="hidden" name="jalur" value="raport">
+                    <div class="form-group" style="margin-right:10px;">
+                        <label>Program Studi:&nbsp;</label>
+                        <select name="prodi" class="form-control" style="width:280px;">
+                            <option value="">-- Semua Prodi --</option>
+                            {% regroup prodi_list_all by fakultas as prodi_by_fak %}
+                            {% for fak in prodi_by_fak %}
+                            <optgroup label="{{ fak.grouper }}">
+                                {% for p in fak.list %}
+                                <option value="{{ p.pk }}" {% if prodi_id == p.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ p.nama }} ({{ p.jenjang }})
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-right:10px;">
+                        <label>Passing Grade:&nbsp;</label>
+                        <input type="number" name="pg" value="{{ pg_raw }}" step="0.01" min="0" max="100"
+                               class="form-control" style="width:130px;" placeholder="Nilai minimum...">
+                    </div>
+                    <div class="form-group" style="margin-right:10px;">
+                        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Cari nama / no daftar...">
+                    </div>
+                    <button type="submit" class="btn btn-success"><i class="fa fa-search"></i> Tampilkan</button>
+                </form>
+            </div>
+        </div>
+
+        {% if passing_grade %}
+        {# Mode Bulk: ada passing grade → tampilkan 2 tabel + form proses #}
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="prodi_lulus" value="{{ prodi_id }}">
+
+            <!-- Calon LULUS -->
+            <div class="portlet box blue">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-check-circle"></i>
+                        Calon LULUS — Nilai &ge; {{ passing_grade }}
+                        {% if prodi_terpilih %}<small>({{ prodi_terpilih.nama }})</small>{% endif %}
+                        <span class="badge" style="margin-left:8px;">{{ list_lulus|length }}</span>
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    {% if list_lulus %}
+                    <table class="table table-bordered table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th width="4%"><input type="checkbox" id="chk_all_lulus"></th>
+                                <th>No. Daftar</th>
+                                <th>Nama</th>
+                                <th>Pilihan 1</th>
+                                <th>Pilihan 2</th>
+                                <th>Nilai Raport</th>
+                                <th>Nilai Prestasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rb in list_lulus %}
+                            <tr>
+                                <td><input type="checkbox" name="list_lulus" value="{{ rb.pk }}" class="chk-lulus" checked></td>
+                                <td><strong>{{ rb.pendaftar.no_daftar }}</strong></td>
+                                <td>{{ rb.pendaftar.nama }}</td>
+                                <td>{{ rb.pendaftar.prodi1|default:"-" }}</td>
+                                <td>{{ rb.pendaftar.prodi2|default:"-" }}</td>
+                                <td><strong class="text-success">{{ rb.nilai_raport|default:"-" }}</strong></td>
+                                <td>{{ rb.nilai_prestasi|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center text-muted" style="padding:15px;">
+                        Tidak ada pendaftar di atas passing grade ini.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Calon TIDAK LULUS -->
+            <div class="portlet box yellow">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-times-circle"></i>
+                        Calon TIDAK LULUS — Nilai &lt; {{ passing_grade }}
+                        <span class="badge" style="margin-left:8px;">{{ list_tidak_lulus|length }}</span>
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    {% if list_tidak_lulus %}
+                    <table class="table table-bordered table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th width="4%"><input type="checkbox" id="chk_all_tl"></th>
+                                <th>No. Daftar</th>
+                                <th>Nama</th>
+                                <th>Pilihan 1</th>
+                                <th>Pilihan 2</th>
+                                <th>Nilai Raport</th>
+                                <th>Nilai Prestasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rb in list_tidak_lulus %}
+                            <tr>
+                                <td><input type="checkbox" name="list_tidak_lulus" value="{{ rb.pk }}" class="chk-tl" checked></td>
+                                <td><strong>{{ rb.pendaftar.no_daftar }}</strong></td>
+                                <td>{{ rb.pendaftar.nama }}</td>
+                                <td>{{ rb.pendaftar.prodi1|default:"-" }}</td>
+                                <td>{{ rb.pendaftar.prodi2|default:"-" }}</td>
+                                <td><strong class="text-danger">{{ rb.nilai_raport|default:"-" }}</strong></td>
+                                <td>{{ rb.nilai_prestasi|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center text-muted" style="padding:15px;">
+                        Tidak ada pendaftar di bawah passing grade ini.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if list_lulus or list_tidak_lulus %}
+            <div class="alert alert-info text-center">
+                <i class="icon-info"></i> Proses kelulusan hanya untuk data yang dicentang.
+                {% if prodi_terpilih %}
+                Prodi lulus: <strong>{{ prodi_terpilih.nama }}</strong>
+                {% else %}
+                <span class="text-danger"><strong>Pilih program studi terlebih dahulu agar prodi lulus terisi.</strong></span>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-block btn-danger btn-lg"
+                    {% if not prodi_terpilih %}disabled{% endif %}>
+                <i class="fa fa-trophy"></i> Proses Kelulusan untuk Data yang Dicentang
+            </button>
+            {% endif %}
+        </form>
+
+        {% else %}
+        {# Mode List: tampilkan semua status=2 (menunggu keputusan) #}
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-graduation-cap"></i>
+                    Daftar Pendaftar Valid — Menunggu Keputusan Kelulusan
+                    <span class="badge" style="margin-left:8px;">{{ object_list|length }}</span>
+                </div>
+                <div class="portlet-tools">
+                    <small class="text-muted">Isi Passing Grade untuk proses massal, atau klik Tetapkan untuk proses satu-satu.</small>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>No Daftar</th>
+                            <th>Nama</th>
+                            <th>Prodi Pilihan 1</th>
+                            <th>Prodi Pilihan 2</th>
+                            <th>Nilai Raport</th>
+                            <th>Nilai Prestasi</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rb in object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>{{ rb.pendaftar.no_daftar }}</strong></td>
+                            <td>{{ rb.pendaftar.nama }}</td>
+                            <td>{{ rb.pendaftar.prodi1|default:"-" }}</td>
+                            <td>{{ rb.pendaftar.prodi2|default:"-" }}</td>
+                            <td>{{ rb.nilai_raport|default:"-" }}</td>
+                            <td>{{ rb.nilai_prestasi|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'panel:kelulusan_set' 'raport' rb.pk %}" class="btn btn-xs btn-success">
+                                    <i class="fa fa-graduation-cap"></i> Tetapkan
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center text-muted">Tidak ada data pending kelulusan.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        {# ============================================================ #}
+        {#  BEASISWA & UMUM: tampilan list biasa                         #}
+        {# ============================================================ #}
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-graduation-cap"></i>
+                    Kelulusan — {{ jalur|capfirst }}
+                </div>
+            </div>
+            <div class="portlet-body">
+                <form method="get" class="form-inline" style="margin-bottom:15px;">
+                    <input type="hidden" name="jalur" value="{{ jalur }}">
+                    <input type="text" name="q" value="{{ q }}" class="form-control input-sm" placeholder="Cari nama / no daftar...">
+                    <button type="submit" class="btn btn-sm btn-default"><i class="icon-magnifier"></i></button>
+                </form>
+
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>No Daftar</th>
+                            <th>Nama</th>
+                            <th>Prodi Pilihan</th>
+                            <th>Prodi Lulus</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for obj in object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ obj.pendaftar.no_daftar }}</td>
+                            <td>{{ obj.pendaftar.nama }}</td>
+                            <td>{{ obj.pendaftar.prodi1 }}</td>
+                            <td>{{ obj.prodi_lulus|default:"-" }}</td>
+                            <td>
+                                {% if jalur == 'beasiswa' %}
+                                    {% if obj.status_seleksi == 2 %}<span class="label label-info">Verifikasi</span>
+                                    {% elif obj.status_seleksi == 3 %}<span class="label label-success">Lolos</span>
+                                    {% elif obj.status_seleksi == 4 %}<span class="label label-danger">Tidak Lolos</span>
+                                    {% else %}<span class="label label-default">{{ obj.status_seleksi }}</span>{% endif %}
+                                {% else %}
+                                    {% if obj.status == 1 %}<span class="label label-info">Menunggu CBT</span>
+                                    {% elif obj.status == 2 %}<span class="label label-success">Lulus</span>
+                                    {% elif obj.status == 3 %}<span class="label label-danger">Tidak Lulus</span>
+                                    {% else %}<span class="label label-default">{{ obj.status }}</span>{% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'panel:kelulusan_set' jalur obj.pk %}" class="btn btn-xs btn-success">
+                                    <i class="fa fa-graduation-cap"></i> Tetapkan
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted">Tidak ada data.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block inlinescripts %}
+<script>
+$(document).ready(function(){
+    $('#chk_all_lulus').change(function(){
+        $('.chk-lulus').prop('checked', $(this).is(':checked'));
+    });
+    $('#chk_all_tl').change(function(){
+        $('.chk-tl').prop('checked', $(this).is(':checked'));
+    });
+});
+</script>
+{% endblock %}

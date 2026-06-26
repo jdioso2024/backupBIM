@@ -1,0 +1,60 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Foto & KTP - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-picture"></i> Upload Pas Foto &amp; Scan KTP</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="alert alert-info"><i class="fa fa-info-circle"></i> Pas foto latar putih tampak depan (JPG/PNG). Scan KTP jelas terbaca (JPG/PNG/PDF). Maks 5 MB per file.</div>
+                        <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Pas Foto Terbaru</label>
+                                <div class="col-md-9">
+                                    {% if pendaftar.pas_foto %}
+                                    <div class="margin-bottom-5"><img src="{{ pendaftar.pas_foto.url }}" class="img-thumbnail" style="max-height:120px;" /></div>
+                                    {% endif %}
+                                    <input type="file" name="pas_foto" accept="image/*"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Scan KTP / Kartu Pelajar</label>
+                                <div class="col-md-9">
+                                    {% if pendaftar.scan_ktp %}
+                                    <div class="margin-bottom-5"><a href="{{ pendaftar.scan_ktp.url }}" target="_blank" class="btn btn-sm default"><i class="fa fa-file"></i> Lihat File Saat Ini</a></div>
+                                    {% endif %}
+                                    <input type="file" name="scan_ktp" accept="image/*,.pdf"/>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn green uppercase"><i class="fa fa-upload"></i> Upload</button>
+                                <a href="{% url 'dashboard' %}" class="btn default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% if pendaftar.pas_foto %}
+            <div class="col-md-4">
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-picture"></i> Pas Foto Saat Ini</div>
+                    </div>
+                    <div class="portlet-body" align="center">
+                        <img src="{{ pendaftar.pas_foto.url }}" class="img-responsive" style="max-width:200px;" />
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

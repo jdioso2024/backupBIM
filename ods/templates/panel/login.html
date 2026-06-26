@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <title>Login Admin — {{ site.nama_program|default:"PMB Terpadu" }}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <link href="{% static 'assets/global/plugins/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/simple-line-icons/simple-line-icons.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/components-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/plugins-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    {% if site.favicon %}
+    <link rel="shortcut icon" href="{{ site.favicon.url }}"/>
+    {% else %}
+    <link rel="shortcut icon" href="{% static 'global/img/favicon-ums.png' %}"/>
+    {% endif %}
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body {
+            display: flex; flex-direction: column; min-height: 100vh;
+            background: linear-gradient(135deg, #1e2a5e 0%, #2f3185 50%, #3a3f9e 100%);
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        .main-wrap { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; padding: 30px 15px; }
+
+        .login-card {
+            background: #fff; width: 100%; max-width: 420px;
+            border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .login-header {
+            background: #1e2a5e; color: #fff; text-align: center; padding: 30px 20px 20px;
+        }
+        .login-header img { max-height: 70px; margin-bottom: 10px; }
+        .login-header h3 { margin: 10px 0 4px; font-weight: bold; letter-spacing: 1px; }
+        .login-header small { color: #c9cce4; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+
+        .login-body { padding: 30px 30px 20px; }
+        .login-body .form-title {
+            font-size: 16px; color: #2f3185; font-weight: bold;
+            text-align: center; margin-bottom: 20px; text-transform: uppercase;
+        }
+        .login-body .form-group { margin-bottom: 18px; }
+        .login-body .input-icon { position: relative; }
+        .login-body .input-icon input {
+            padding-left: 40px; height: 42px; border: 1px solid #ccd;
+            border-radius: 4px; width: 100%;
+        }
+        .login-body .input-icon input:focus { border-color: #2f3185; outline: 0; }
+        .login-body .input-icon i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #888;
+        }
+        .btn-login {
+            background: #2f3185; color: #fff; border: 0; width: 100%;
+            padding: 12px; border-radius: 4px; font-weight: bold; font-size: 14px;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-login:hover { background: #1e2a5e; color: #fff; }
+
+        .login-footer {
+            background: #f7f7fa; padding: 14px 20px; text-align: center;
+            font-size: 12px; color: #888; border-top: 1px solid #eee;
+        }
+        .login-footer a { color: #2f3185; text-decoration: none; }
+        .login-footer a:hover { text-decoration: underline; }
+
+        .page-footer {
+            flex-shrink: 0; text-align: center; color: rgba(255,255,255,0.7);
+            font-size: 12px; padding: 15px;
+        }
+
+        .alert-login {
+            background: #fbe5e5; color: #a94442; border: 1px solid #ebccd1;
+            padding: 10px 14px; border-radius: 4px; margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .alert-login .close { float: right; font-size: 16px; border: 0; background: none; color: inherit; }
+    </style>
+</head>
+<body>
+
+<div class="main-wrap">
+    <div class="login-card">
+        <div class="login-header">
+            {% if site.logo_login %}
+            <img src="{{ site.logo_login.url }}" alt="Logo {{ site.singkatan|default:'' }}"/>
+            {% elif site.logo %}
+            <img src="{{ site.logo.url }}" alt="Logo {{ site.singkatan|default:'' }}"/>
+            {% else %}
+            <img src="{% static 'assets/pages/img/logo-ums-baru-kecil.png' %}" alt="Logo"/>
+            {% endif %}
+            <h3>{{ site.singkatan|default:"PMB" }}</h3>
+            <small>Panel Admin — {{ site.nama_program|default:"PMB Terpadu" }}</small>
+        </div>
+
+        <div class="login-body">
+            <div class="form-title"><i class="icon-lock"></i> Login Admin</div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert-login">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="POST" autocomplete="off">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-icon">
+                        <i class="fa fa-user"></i>
+                        <input type="text" name="username" placeholder="Username" required autofocus/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-icon">
+                        <i class="fa fa-lock"></i>
+                        <input type="password" name="password" placeholder="Password" required/>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="fa fa-sign-in"></i> MASUK
+                </button>
+            </form>
+        </div>
+
+        <div class="login-footer">
+            Login calon mahasiswa? <a href="{% url 'login' %}">Klik di sini</a>
+        </div>
+    </div>
+</div>
+
+<div class="page-footer">
+    {% now "Y" %} &copy; {{ site.footer_copyright|default:"" }} &mdash;
+    {{ site.nama_universitas|default:"" }}
+</div>
+
+<script src="{% static 'assets/global/plugins/jquery.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/global/plugins/bootstrap/js/bootstrap.min.js' %}" type="text/javascript"></script>
+</body>
+</html>

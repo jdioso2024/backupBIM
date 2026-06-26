@@ -1,0 +1,103 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}{% if is_edit %}Ubah{% else %}Tambah{% endif %} Jenis Beasiswa{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>
+                    {% if is_edit %}Ubah{% else %}Tambah{% endif %} Jenis Beasiswa
+                    <small>{% if is_edit %}{{ obj.nama }}{% endif %}</small>
+                </h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-tag"></i> Form Jenis Beasiswa
+                </div>
+            </div>
+            <div class="portlet-body">
+                <form method="POST" class="form-horizontal">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="form-group {% if form.kode.errors %}has-error{% endif %}">
+                        <label class="col-md-2 control-label">Kode <span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            {{ form.kode }}
+                            {% if form.kode.errors %}
+                            <span class="help-block">{{ form.kode.errors.0 }}</span>
+                            {% else %}
+                            <span class="help-block">{{ form.kode.help_text }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group {% if form.nama.errors %}has-error{% endif %}">
+                        <label class="col-md-2 control-label">Nama Beasiswa <span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            {{ form.nama }}
+                            {% if form.nama.errors %}
+                            <span class="help-block">{{ form.nama.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Deskripsi</label>
+                        <div class="col-md-8">
+                            {{ form.deskripsi }}
+                            <span class="help-block">Penjelasan singkat (opsional).</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Urutan Tampil</label>
+                        <div class="col-md-2">
+                            {{ form.urutan }}
+                            <span class="help-block">Semakin kecil semakin atas.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Status</label>
+                        <div class="col-md-8">
+                            <label class="checkbox-inline">
+                                {{ form.aktif }} Aktif (muncul di form pendaftaran cama)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <div class="col-md-offset-2 col-md-10">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-check"></i> Simpan
+                            </button>
+                            <a href="{% url 'panel:jenis_beasiswa_list' %}" class="btn btn-default">
+                                <i class="fa fa-times"></i> Batal
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

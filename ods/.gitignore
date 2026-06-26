@@ -1,0 +1,28 @@
+# Environment (berisi kredensial DB & SECRET_KEY — jangan di-commit)
+.env
+.env.local
+.env.production
+
+# Kubernetes Secret (plain-text password & SECRET_KEY — apply manual di server)
+k8s-secret.yaml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+staticfiles/
+media/
+logs/
+db.sqlite3
+*.log
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PMB Terpadu — Service (pengganti ods.bim.ac.id / pmb_raport)
+#
+# Selama transisi pakai port 817 agar coexist dengan pmb_raport (yang pakai 816).
+# Setelah cutover:
+#   1. Swap Nginx reverse proxy di 10.3.11.60:
+#        proxy_pass https://10.3.11.53:816  →  https://10.3.11.53:817
+#   2. Tunggu stabil, lalu decommission pmb_raport service (port 816).
+#   3. Opsional: redeploy service ini ke port 816 agar infra kembali seragam.
+#
+# Apply: microk8s kubectl apply -f k8s-service.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: pmb-terpadu-deployment
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: pmb-terpadu
+  externalIPs:
+    - 10.3.11.53
+  ports:
+    - name: https
+      protocol: TCP
+      port: 817          # Service port (akan di-proxy oleh Nginx 10.3.11.60)
+      targetPort: 8000   # Container port (gunicorn HTTPS)

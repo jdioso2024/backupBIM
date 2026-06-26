@@ -1,0 +1,129 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}{% if is_edit %}Ubah{% else %}Tambah{% endif %} User{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>
+                    {% if is_edit %}Ubah{% else %}Tambah{% endif %} User
+                    <small>{% if is_edit %}{{ obj.username }}{% endif %}</small>
+                </h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-user"></i> Form Akun</div>
+            </div>
+            <div class="portlet-body">
+                <form method="POST" class="form-horizontal" autocomplete="off">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Username <span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            <input type="text" name="username" class="form-control"
+                                   value="{{ form_data.username }}" maxlength="150" required
+                                   {% if is_edit and obj.pk == request.user.pk %}readonly{% endif %}>
+                            <span class="help-block">Untuk login. Huruf, angka, dan @/./+/-/_ saja.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Nama Depan</label>
+                        <div class="col-md-4">
+                            <input type="text" name="first_name" class="form-control"
+                                   value="{{ form_data.first_name }}" maxlength="150">
+                        </div>
+                        <label class="col-md-1 control-label">Nama Belakang</label>
+                        <div class="col-md-3">
+                            <input type="text" name="last_name" class="form-control"
+                                   value="{{ form_data.last_name }}" maxlength="150">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Email</label>
+                        <div class="col-md-6">
+                            <input type="email" name="email" class="form-control"
+                                   value="{{ form_data.email }}" maxlength="254">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">
+                            Password {% if not is_edit %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="col-md-4">
+                            <input type="text" name="password" class="form-control" minlength="6"
+                                   {% if not is_edit %}required{% endif %}
+                                   placeholder="{% if is_edit %}Kosongkan jika tidak ingin diubah{% else %}Minimal 6 karakter{% endif %}"
+                                   autocomplete="new-password">
+                            <span class="help-block">
+                                {% if is_edit %}Kosongkan untuk mempertahankan password lama.{% else %}Minimal 6 karakter.{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Hak Akses</label>
+                        <div class="col-md-8">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="is_active" value="1"
+                                       {% if form_data.is_active %}checked{% endif %}
+                                       {% if is_edit and obj.pk == request.user.pk %}disabled{% endif %}>
+                                Aktif (bisa login)
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="is_staff" value="1"
+                                       {% if form_data.is_staff %}checked{% endif %}>
+                                Staff (akses panel operator)
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="is_superuser" value="1"
+                                       {% if form_data.is_superuser %}checked{% endif %}
+                                       {% if is_edit and obj.pk == request.user.pk %}disabled{% endif %}>
+                                Superuser (akses penuh)
+                            </label>
+                            <span class="help-block">
+                                <i class="fa fa-info-circle"></i>
+                                Superuser otomatis berstatus staff. Anda tidak bisa mencabut superuser/non-aktifkan akun sendiri.
+                            </span>
+                        </div>
+                    </div>
+
+                    {# Hidden submit untuk akun sendiri supaya checkbox disabled tetap terkirim #}
+                    {% if is_edit and obj.pk == request.user.pk %}
+                        <input type="hidden" name="is_active" value="1">
+                        <input type="hidden" name="is_superuser" value="1">
+                    {% endif %}
+
+                    <div class="form-actions">
+                        <div class="col-md-offset-2 col-md-10">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-check"></i> Simpan
+                            </button>
+                            <a href="{% url 'panel:kelola_user_list' %}" class="btn btn-default">
+                                <i class="fa fa-times"></i> Batal
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

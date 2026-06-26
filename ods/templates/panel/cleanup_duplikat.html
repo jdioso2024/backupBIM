@@ -1,0 +1,301 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Cleanup Pendaftar — Panel Admin{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Cleanup Pendaftar <small>superuser only</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}{% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}{% endif %}
+
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle"></i>
+            <strong>Peringatan:</strong> hapus permanen pendaftar + semua relasi
+            (User, Sekolah, Ortu, Berkas jalur, Registrasi). Tidak bisa di-undo.
+            Pastikan sudah backup DB sebelum melanjutkan.
+        </div>
+
+        <!-- ────────── Section 1: Grup Duplikat ────────── -->
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-clone font-red"></i>
+                    <span class="caption-subject bold uppercase">Deteksi Duplikat</span>
+                </div>
+                <div class="actions">
+                    <div class="btn-group">
+                        <a href="?group_by=nik" class="btn btn-sm btn-{% if group_by == 'nik' %}danger{% else %}default{% endif %}">By NIK</a>
+                        <a href="?group_by=nama" class="btn btn-sm btn-{% if group_by == 'nama' %}danger{% else %}default{% endif %}">By Nama</a>
+                        <a href="?group_by=nama_tgl" class="btn btn-sm btn-{% if group_by == 'nama_tgl' %}danger{% else %}default{% endif %}">By Nama + Tgl Lahir</a>
+                    </div>
+                </div>
+            </div>
+            <div class="portlet-body">
+                {% if not groups %}
+                <p class="text-center text-muted" style="padding:30px;">
+                    <i class="fa fa-check-circle" style="font-size:32px;color:#36c6d3;"></i><br>
+                    Tidak ada duplikat berdasarkan kriteria ini.
+                </p>
+                {% else %}
+                <p>
+                    Ditemukan <strong>{{ total_groups }}</strong> grup
+                    ({{ total_duplicates }} pendaftar).
+                    Pilih <strong>Keep</strong> per grup, sisanya akan dihapus.
+                    Grup tanpa pilihan Keep di-skip.
+                </p>
+
+                <form method="POST" id="form-groups">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="cleanup_groups">
+
+                    {% for g in groups %}
+                    <div class="well" style="margin-bottom:10px;">
+                        <h5 style="margin-top:0;"><code>{{ g.label }}</code> <span class="text-muted">({{ g.rows|length }} pendaftar)</span></h5>
+                        <table class="table table-condensed table-hover" style="margin-bottom:0;">
+                            <thead>
+                                <tr style="background:#f0f0f0;">
+                                    <th style="width:50px;">Keep</th>
+                                    <th>No. Daftar</th>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>NIK</th>
+                                    <th>Tgl Lahir</th>
+                                    <th>Jalur</th>
+                                    <th>Daftar</th>
+                                    <th>Data</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for r in g.rows %}
+                            <tr>
+                                <td><input type="radio" name="keep_{{ g.key }}" value="{{ r.pendaftar.pk }}"></td>
+                                <td><code>{{ r.pendaftar.no_daftar }}</code></td>
+                                <td><strong>{{ r.pendaftar.nama }}</strong></td>
+                                <td><small>{{ r.pendaftar.user.email }}</small></td>
+                                <td><small>{{ r.pendaftar.NIK|default:"—" }}</small></td>
+                                <td><small>{{ r.pendaftar.tanggal_lahir|date:"d/m/Y"|default:"—" }}</small></td>
+                                <td>
+                                    <span class="label label-info">{{ r.pendaftar.get_jalur_display }}</span>
+                                    {% if r.is_lulus %}<span class="label label-success">LULUS</span>{% endif %}
+                                </td>
+                                <td><small>{{ r.pendaftar.created_at|date:"d/m/Y" }}</small></td>
+                                <td>
+                                    <small>
+                                        {% if r.has_sekolah %}<i class="fa fa-check text-success"></i>{% else %}<i class="fa fa-times text-muted"></i>{% endif %}Sek
+                                        | <i class="fa fa-users"></i>{{ r.ortu_count }}
+                                        {% if r.has_registrasi %}| <i class="fa fa-file-text text-success" title="Reg"></i>{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="/admin/pendaftaran/pendaftar/{{ r.pendaftar.pk }}/change/" target="_blank" class="btn btn-xs btn-default" title="Detail di Django admin">
+                                        <i class="fa fa-external-link"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+
+                    <div class="text-center" style="margin-top:15px;">
+                        <button type="button" class="btn btn-danger btn-lg"
+                                data-toggle="modal" data-target="#modal-konfirmasi-groups">
+                            <i class="fa fa-trash"></i> Hapus Non-Keep
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ────────── Section 2: Search & Hapus Manual ────────── -->
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-search font-blue"></i>
+                    <span class="caption-subject bold uppercase">Cari &amp; Hapus Manual</span>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <form method="GET" class="form-inline" style="margin-bottom:15px;">
+                    <input type="hidden" name="group_by" value="{{ group_by }}">
+                    <input type="text" name="q" class="form-control" placeholder="Cari nama, email, no. daftar, atau NIK (min 3 karakter)..."
+                           value="{{ search_query }}" style="width:400px;">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Cari</button>
+                    {% if search_query %}
+                    <a href="?group_by={{ group_by }}" class="btn btn-default">Clear</a>
+                    {% endif %}
+                </form>
+
+                {% if search_query and not search_results %}
+                <p class="text-muted">Tidak ada pendaftar yang cocok dengan <code>{{ search_query }}</code>.</p>
+                {% elif search_results %}
+                <form method="POST" id="form-manual">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="manual_delete">
+                    <input type="hidden" name="q" value="{{ search_query }}">
+
+                    <p>Ditemukan <strong>{{ search_results|length }}</strong> pendaftar. Centang yang mau dihapus:</p>
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr style="background:#f0f0f0;">
+                                <th style="width:40px;"><input type="checkbox" id="check-all"></th>
+                                <th>No. Daftar</th>
+                                <th>Nama</th>
+                                <th>Email</th>
+                                <th>NIK</th>
+                                <th>Tgl Lahir</th>
+                                <th>Jalur</th>
+                                <th>Daftar</th>
+                                <th>Data</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for r in search_results %}
+                        <tr>
+                            <td><input type="checkbox" name="delete_ids" value="{{ r.pendaftar.pk }}" class="chk-delete"></td>
+                            <td><code>{{ r.pendaftar.no_daftar }}</code></td>
+                            <td><strong>{{ r.pendaftar.nama }}</strong></td>
+                            <td><small>{{ r.pendaftar.user.email }}</small></td>
+                            <td><small>{{ r.pendaftar.NIK|default:"—" }}</small></td>
+                            <td><small>{{ r.pendaftar.tanggal_lahir|date:"d/m/Y"|default:"—" }}</small></td>
+                            <td>
+                                <span class="label label-info">{{ r.pendaftar.get_jalur_display }}</span>
+                                {% if r.is_lulus %}<span class="label label-success">LULUS</span>{% endif %}
+                            </td>
+                            <td><small>{{ r.pendaftar.created_at|date:"d/m/Y" }}</small></td>
+                            <td>
+                                <small>
+                                    {% if r.has_sekolah %}<i class="fa fa-check text-success"></i>{% else %}<i class="fa fa-times text-muted"></i>{% endif %}Sek
+                                    | <i class="fa fa-users"></i>{{ r.ortu_count }}
+                                    {% if r.has_registrasi %}| <i class="fa fa-file-text text-success"></i>{% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <a href="/admin/pendaftaran/pendaftar/{{ r.pendaftar.pk }}/change/" target="_blank" class="btn btn-xs btn-default">
+                                    <i class="fa fa-external-link"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div class="text-center" style="margin-top:15px;">
+                        <button type="button" class="btn btn-danger"
+                                data-toggle="modal" data-target="#modal-konfirmasi-manual">
+                            <i class="fa fa-trash"></i> Hapus Yang Dicentang
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="margin-top:10px;">
+            <a href="{% url 'panel:dashboard' %}" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+
+        <!-- Modal konfirmasi grup -->
+        <div class="modal fade" id="modal-konfirmasi-groups" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#e7505a;color:#fff;">
+                        <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:0.8;">&times;</button>
+                        <h4 class="modal-title"><i class="fa fa-exclamation-triangle"></i> Konfirmasi Hapus</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Akan menghapus <strong id="groups-delete-count">?</strong> pendaftar non-keep.</p>
+                        <p class="text-danger"><i class="fa fa-warning"></i> <strong>Tidak bisa di-undo.</strong> Semua relasi ikut terhapus.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-danger" id="btn-groups-submit">
+                            <i class="fa fa-trash"></i> Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal konfirmasi manual -->
+        <div class="modal fade" id="modal-konfirmasi-manual" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#e7505a;color:#fff;">
+                        <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:0.8;">&times;</button>
+                        <h4 class="modal-title"><i class="fa fa-exclamation-triangle"></i> Konfirmasi Hapus Manual</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Akan menghapus <strong id="manual-delete-count">?</strong> pendaftar yang dicentang.</p>
+                        <p class="text-danger"><i class="fa fa-warning"></i> <strong>Tidak bisa di-undo.</strong> Semua relasi ikut terhapus.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-danger" id="btn-manual-submit">
+                            <i class="fa fa-trash"></i> Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block inlinescripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Section 1: groups
+    var formGroups = document.getElementById('form-groups');
+    var btnGroupsSubmit = document.getElementById('btn-groups-submit');
+    var groupsCountEl = document.getElementById('groups-delete-count');
+
+    document.querySelector('[data-target="#modal-konfirmasi-groups"]')?.addEventListener('click', function () {
+        if (!formGroups) return;
+        var total = 0;
+        {% for g in groups %}
+        var keep = formGroups.querySelector('input[name="keep_{{ g.key|escapejs }}"]:checked');
+        if (keep) total += {{ g.rows|length }} - 1;
+        {% endfor %}
+        groupsCountEl.textContent = total;
+    });
+
+    btnGroupsSubmit?.addEventListener('click', function () { formGroups.submit(); });
+
+    // Section 2: manual
+    var formManual = document.getElementById('form-manual');
+    var btnManualSubmit = document.getElementById('btn-manual-submit');
+    var manualCountEl = document.getElementById('manual-delete-count');
+    var checkAll = document.getElementById('check-all');
+
+    checkAll?.addEventListener('change', function () {
+        document.querySelectorAll('.chk-delete').forEach(function (cb) { cb.checked = checkAll.checked; });
+    });
+
+    document.querySelector('[data-target="#modal-konfirmasi-manual"]')?.addEventListener('click', function () {
+        if (!formManual) return;
+        var total = formManual.querySelectorAll('.chk-delete:checked').length;
+        manualCountEl.textContent = total;
+    });
+
+    btnManualSubmit?.addEventListener('click', function () { formManual.submit(); });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,427 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="{% static 'assets/global/plugins/jquery.min.js' %}" type="text/javascript"></script>
+    <meta charset="utf-8"/>
+    <title>Pendaftaran {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:"" }}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <link href="{% static 'assets/global/plugins/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/simple-line-icons/simple-line-icons.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/select2/css/select2.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/plugins/select2/css/select2-bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/components-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'assets/global/css/plugins-md.min.css' %}" rel="stylesheet" type="text/css"/>
+    {% if site.favicon %}
+    <link rel="shortcut icon" href="{{ site.favicon.url }}"/>
+    {% else %}
+    <link rel="shortcut icon" href="{% static 'global/img/favicon-ums.png' %}"/>
+    {% endif %}
+    <style>
+        .portlet.box.biru-ums > .portlet-title { background-color: #2f3185; }
+        .portlet.box.biru-ums > .portlet-title > .caption,
+        .portlet.box.biru-ums > .portlet-title > .caption > i { color: #fff; }
+        .portlet.box.biru-ums { border: 1px solid #4a4fac; border-top: 0; }
+
+        /* Inline validation state */
+        .form-group.has-error .form-control {
+            border-color: #e25b5b !important;
+            box-shadow: 0 0 0 3px rgba(226,91,91,0.12);
+        }
+        .inline-error {
+            display: none; color: #c92a2a; font-size: 13px;
+            margin-top: 6px; padding: 8px 12px;
+            background: #fdecec; border-left: 3px solid #e25b5b; border-radius: 3px;
+        }
+        .form-group.has-error .inline-error { display: block; }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            max-width: 360px; pointer-events: none;
+        }
+        .toast-msg {
+            background: #fff; border-left: 4px solid #e25b5b;
+            border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+            padding: 14px 18px; margin-bottom: 10px; font-size: 14px;
+            color: #333; display: flex; align-items: flex-start; gap: 10px;
+            transform: translateX(400px); opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: auto;
+        }
+        .toast-msg.show { transform: translateX(0); opacity: 1; }
+        .toast-msg i { color: #e25b5b; font-size: 18px; padding-top: 2px; }
+        .toast-msg strong { display: block; color: #1e2a5e; margin-bottom: 2px; }
+        .background-ums {
+            background-image: linear-gradient(to top, rgba(128,154,220,0.5), rgba(128,154,220,0)), url("{% static 'img/background-ums.svg' %}");
+            min-height: 100%; background-position: center; background-repeat: no-repeat; background-size: cover;
+        }
+        .title-ums { padding: 20px; margin: 30px; text-align: center; }
+        body { padding-bottom: 40px; }
+        .table-wrap th, .table-wrap td { white-space: normal !important; word-wrap: break-word; }
+    </style>
+</head>
+<body class="background-ums">
+
+<div class="logo title-ums">
+    {% if site.logo %}
+    <img src="{{ site.logo.url }}" alt="Logo {{ site.singkatan|default:'' }}" style="max-height:100px;"/>
+    {% else %}
+    <img src="{% static 'assets/pages/img/logo-ums-baru-kecil.png' %}" alt="Logo" style="max-height:100px;"/>
+    {% endif %}
+    <h3><b>PENDAFTARAN
+        {% if jalur == 'raport' %}JALUR RAPORT
+        {% elif jalur == 'beasiswa' %}JALUR BEASISWA
+        {% else %}JALUR UMUM{% endif %}
+    </b></h3>
+</div>
+
+<form class="form-horizontal" name="registration" method="POST">{% csrf_token %}
+<input type="hidden" name="jalur" value="{{ jalur }}"/>
+
+    {% if messages %}
+    <div class="col-md-6 col-md-offset-3">
+        {% for message in messages %}
+        <div class="alert alert-danger"><button class="close" data-dismiss="alert">&times;</button>{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- DATA PRIBADI -->
+    <div class="row"><div class="col-md-6 col-md-offset-3">
+        <div class="portlet box biru-ums">
+            <div class="portlet-title">
+                <div class="caption"><i class="icon-credit-card"></i>
+                    <span class="caption-subject sbold uppercase">Data Pribadi</span>
+                </div>
+            </div>
+            <div class="portlet-body form" style="background:#fff;">
+                <div class="form-body">
+                    <div class="form-group" id="fg_nama">
+                        <label class="col-md-3 control-label">Nama *</label>
+                        <div class="col-md-9">
+                            <input type="text" name="nama" id="id_nama" class="form-control" placeholder="Nama lengkap sesuai KTP" required/>
+                            <small class="text-muted">Nama lengkap sesuai KTP.</small>
+                            <div class="inline-error" id="err_nama"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="fg_nik">
+                        <label class="col-md-3 control-label">NIK *</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="number" name="nik" id="id_NIK" class="form-control" placeholder="16 digit NIK" required/>
+                                <span class="input-group-btn">
+                                    <a class="btn red" data-toggle="modal" href="#modalNIK">?</a>
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                16 digit sesuai NIK. <b>Wajib</b> mengisi NIK yang valid agar data anda
+                                dapat divalidasi. Cocokkan dengan NIK pada KTP/KK.
+                            </small>
+                            <div class="inline-error" id="err_nik"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="fg_hp">
+                        <label class="col-md-3 control-label">No HP *</label>
+                        <div class="col-md-9">
+                            <input type="text" name="no_hp" id="id_no_hp" class="form-control" placeholder="081234567890" required/>
+                            <small class="text-muted">
+                                Masukkan nomor HP yang selalu aktif, karena akan digunakan sebagai
+                                pusat informasi selama proses PMB. <b>Hanya angka</b>, tanpa kode negara,
+                                spasi, atau tanda strip. Contoh: 081234567890
+                            </small>
+                            <div class="inline-error" id="err_hp"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div>
+
+    <!-- DATA AKUN -->
+    <div class="row"><div class="col-md-6 col-md-offset-3">
+        <div class="portlet box biru-ums">
+            <div class="portlet-title">
+                <div class="caption"><i class="icon-user"></i>
+                    <span class="caption-subject sbold uppercase">Data Akun</span>
+                </div>
+            </div>
+            <div class="portlet-body form" style="background:#fff;">
+                <div class="form-body">
+                    <div class="form-group" id="fg_email">
+                        <label class="col-md-3 control-label">Email *</label>
+                        <div class="col-md-9">
+                            <input type="email" name="email" id="id_email" class="form-control" placeholder="email@domain.com" required/>
+                            <small class="text-muted">Digunakan sebagai username login.</small>
+                            <div class="inline-error" id="err_email"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="fg_pass1">
+                        <label class="col-md-3 control-label">Password *</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="password" name="password" id="id_password1" class="form-control" placeholder="Minimal 8 karakter" required/>
+                                <span class="input-group-addon"><i class="fa fa-key"></i></span>
+                            </div>
+                            <div class="inline-error" id="err_pass1"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="fg_pass2">
+                        <label class="col-md-3 control-label">Ulangi Password *</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="password" name="password2" id="id_password2" class="form-control" placeholder="Ulangi password" required onkeyup="isPasswordMatch()"/>
+                                <span class="input-group-addon" id="divCheckPasswordInfo"><i class="fa fa-key"></i></span>
+                                <span class="input-group-addon font-red" id="divCheckPasswordSalah" style="display:none;"></span>
+                                <span class="input-group-addon font-green" id="divCheckPasswordBenar" style="display:none;"></span>
+                            </div>
+                            <small class="text-muted">Email dan Password digunakan untuk login.</small>
+                            <div class="inline-error" id="err_pass2"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    <input type="button" class="btn btn-block" id="btnLanjut" value="PILIH PROGRAM STUDI" style="background-color:#f5c13a;color:black;font-size:14px;font-weight:bold;"/>
+                </div>
+            </div>
+        </div>
+    </div></div>
+
+    <!-- PILIHAN PROGRAM STUDI -->
+    <div class="row"><div class="col-md-6 col-md-offset-3" id="konfirm-box">
+        <div class="portlet box biru-ums">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-exchange"></i>
+                    <span class="caption-subject sbold uppercase">Pilihan Program Studi</span>
+                </div>
+            </div>
+            <div class="portlet-body form" style="background:#fff;">
+                <div class="form-body">
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i>
+                        Pilihan 1 sebagai prioritas utama, Pilihan 2 sebagai cadangan.
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Jenis Pendaftaran</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="JALUR {% if jalur == 'raport' %}RAPORT{% elif jalur == 'beasiswa' %}BEASISWA{% else %}UMUM{% endif %}" readonly style="background:#f5f5f5;font-weight:bold;"/>
+                        </div>
+                    </div>
+                    {% if jalur == 'beasiswa' %}
+                    <div class="form-group" id="fg_jenis_beasiswa">
+                        <label class="col-md-4 control-label">Jenis Beasiswa *</label>
+                        <div class="col-md-8">
+                            <select name="jenis_beasiswa" id="id_jenis_beasiswa" class="form-control select2" required>
+                                <option value="" disabled selected>-- Pilih Jenis Beasiswa --</option>
+                                {% for j in jenis_beasiswa_list %}
+                                <option value="{{ j.kode }}">{{ j.kode }} &mdash; {{ j.nama }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Pilih jenis beasiswa yang Anda lamar.</small>
+                            <div class="inline-error" id="err_jenis_beasiswa"><i class="fa fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Pilihan Prodi 1 *</label>
+                        <div class="col-md-8">
+                            <select name="prodi1" id="id_prodi1" class="form-control select2" required>
+                                <option value="" disabled selected>-- Pilih Prodi --</option>
+                                {% regroup prodi_list by fakultas as prodi_by_fak %}
+                                {% for fak in prodi_by_fak %}
+                                <optgroup label="{{ fak.grouper }}">
+                                    {% for p in fak.list %}<option value="{{ p.pk }}">{{ p.nama }} ({{ p.jenjang }})</option>{% endfor %}
+                                </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Pilihan Prodi 2</label>
+                        <div class="col-md-8">
+                            <select name="prodi2" id="id_prodi2" class="form-control select2">
+                                <option value="">-- Opsional --</option>
+                                {% for fak in prodi_by_fak %}
+                                <optgroup label="{{ fak.grouper }}">
+                                    {% for p in fak.list %}<option value="{{ p.pk }}">{{ p.nama }} ({{ p.jenjang }})</option>{% endfor %}
+                                </optgroup>
+                                {% endfor %}
+                            </select>
+                            <span class="help-block alert alert-danger" style="margin-top:8px;">
+                                Jika dinyatakan lulus pada prodi yang dipilih, tidak dapat pindah prodi lain.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="row">
+                            <div class="col-md-offset-3 col-md-9">
+                                <button type="submit" class="btn btnSubmit" style="background-color:#f5c13a;color:black;font-weight:bold;">DAFTAR</button>
+                                <a class="btn default" href="{% url 'home' %}">Batal</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div>
+
+</form>
+
+<!-- Container untuk toast notifikasi -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#2f3185;color:#fff;">
+                <h4 class="modal-title">Konfirmasi Data Pendaftaran</h4>
+            </div>
+            <div class="modal-body">
+                <p>Periksa kembali data Anda. <b>Nama dan NIK TIDAK BISA DIUBAH</b> setelah terdaftar.</p>
+                <table class="table table-bordered table-wrap">
+                    <tr><th width="40%">Nama Lengkap</th><td id="konf_nama"></td></tr>
+                    <tr><th>NIK</th><td id="konf_nik"></td></tr>
+                    <tr><td colspan="2" align="center" style="background:#f2dede;"><b class="text-danger">Nama dan NIK TIDAK BISA DIUBAH setelah terdaftar</b></td></tr>
+                    <tr><th>No HP</th><td id="konf_hp"></td></tr>
+                    <tr><th>Email</th><td id="konf_email"></td></tr>
+                    {% if jalur == 'beasiswa' %}
+                    <tr><th>Jenis Beasiswa</th><td id="konf_jenis_beasiswa"></td></tr>
+                    {% endif %}
+                    <tr><th>Prodi Pilihan 1</th><td id="konf_prodi1"></td></tr>
+                    <tr><th>Prodi Pilihan 2</th><td id="konf_prodi2"></td></tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Kembali</button>
+                <button type="button" class="btn btn-success" id="btnSubmitFinal">KONFIRMASI &amp; DAFTAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal NIK -->
+<div class="modal fade" id="modalNIK" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title font-red-mint">Apa itu NIK?</h4>
+            </div>
+            <div class="modal-body">
+                <p>NIK singkatan dari <b>Nomor Induk Kependudukan</b>, berupa
+                <b>16 digit angka</b> yang berada di bagian atas KTP.</p>
+                <div style="text-align:center; margin-top:15px;">
+                    <img src="{% static 'img/ktp.jpg' %}" alt="Contoh posisi NIK pada KTP"
+                         class="img-responsive"
+                         style="max-width:100%; border:1px solid #ddd; border-radius:6px; display:inline-block;"/>
+                </div>
+                <div class="alert alert-danger" style="margin-top:15px;">
+                    <i class="fa fa-exclamation-triangle"></i>
+                    16 digit sesuai NIK. <b>Wajib</b> mengisi NIK yang valid/benar/sesuai
+                    agar data anda dapat divalidasi. Silahkan mencocokkan NIK yang anda
+                    inputkan dengan data NIK anda pada KTP/KK.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn dark btn-outline" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'assets/global/plugins/bootstrap/js/bootstrap.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/global/plugins/select2/js/select2.full.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/global/scripts/app.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#konfirm-box').hide();
+    $(".select2").select2({ width: '100%' });
+    $("#divCheckPasswordBenar").hide();
+    $("#divCheckPasswordSalah").hide();
+
+    // Clear inline error saat user mengetik
+    $('input').on('input change', function() {
+        $(this).closest('.form-group').removeClass('has-error');
+    });
+
+    function setFieldError(fgId, errId, message) {
+        $('#' + fgId).addClass('has-error');
+        $('#' + errId + ' span').text(message);
+    }
+    function clearAllErrors() {
+        $('.form-group').removeClass('has-error');
+    }
+    function showToast(title, message) {
+        var html = '<div class="toast-msg"><i class="fa fa-exclamation-triangle"></i>'
+                 + '<div><strong>' + title + '</strong>' + message + '</div></div>';
+        var $t = $(html).appendTo('#toastContainer');
+        setTimeout(function(){ $t.addClass('show'); }, 20);
+        setTimeout(function(){
+            $t.removeClass('show');
+            setTimeout(function(){ $t.remove(); }, 300);
+        }, 3500);
+    }
+
+    $('#btnLanjut').click(function() {
+        clearAllErrors();
+        var nama = $("#id_nama").val().trim();
+        var nik = $("#id_NIK").val().trim();
+        var hp = $("#id_no_hp").val().trim();
+        var email = $("#id_email").val().trim();
+        var pass1 = $("#id_password1").val();
+        var pass2 = $("#id_password2").val();
+
+        var firstErr = null;
+        if (!nama)                         { setFieldError('fg_nama', 'err_nama', 'Nama wajib diisi.'); firstErr = firstErr || '#id_nama'; }
+        if (!nik || nik.length !== 16)     { setFieldError('fg_nik',  'err_nik',  'NIK harus tepat 16 digit.'); firstErr = firstErr || '#id_NIK'; }
+        if (!hp)                           { setFieldError('fg_hp',   'err_hp',   'No HP wajib diisi.'); firstErr = firstErr || '#id_no_hp'; }
+        if (!email)                        { setFieldError('fg_email','err_email','Email wajib diisi.'); firstErr = firstErr || '#id_email'; }
+        if (!pass1 || pass1.length < 8)    { setFieldError('fg_pass1','err_pass1','Password minimal 8 karakter.'); firstErr = firstErr || '#id_password1'; }
+        if (pass1 !== pass2)               { setFieldError('fg_pass2','err_pass2','Konfirmasi password tidak cocok.'); firstErr = firstErr || '#id_password2'; }
+
+        if (firstErr) {
+            showToast('Data belum lengkap', 'Periksa kembali field bertanda merah.');
+            $('html, body').animate({ scrollTop: $(firstErr).offset().top - 100 }, 400);
+            $(firstErr).focus();
+            return;
+        }
+
+        $('#konfirm-box').animate({"opacity": "show"}, 500);
+        $('#btnLanjut').hide();
+        $('html, body').animate({ scrollTop: $("#konfirm-box").offset().top }, 800);
+    });
+
+    $("form[name='registration']").on("submit", function(e) {
+        e.preventDefault();
+        $("#konf_nama").text($("#id_nama").val());
+        $("#konf_nik").text($("#id_NIK").val());
+        $("#konf_hp").text($("#id_no_hp").val());
+        $("#konf_email").text($("#id_email").val());
+        if ($("#id_jenis_beasiswa").length) {
+            $("#konf_jenis_beasiswa").text($("#id_jenis_beasiswa option:selected").text());
+        }
+        $("#konf_prodi1").text($("#id_prodi1 option:selected").text());
+        $("#konf_prodi2").text($("#id_prodi2 option:selected").text() || "-");
+        $("#modalKonfirmasi").modal("show");
+    });
+
+    $("#btnSubmitFinal").on("click", function() {
+        $("form[name='registration']")[0].submit();
+    });
+});
+
+function isPasswordMatch() {
+    var p1 = $("#id_password1").val(), p2 = $("#id_password2").val();
+    if (!p2) { $("#divCheckPasswordBenar,#divCheckPasswordSalah").hide(); return; }
+    if (p1 !== p2) {
+        $("#divCheckPasswordSalah").html("Kata sandi tidak cocok <i class='fa fa-close font-red'></i>").show();
+        $("#divCheckPasswordBenar,#divCheckPasswordInfo").hide();
+    } else {
+        $("#divCheckPasswordBenar").html("Kata sandi cocok <i class='fa fa-check font-green'></i>").show();
+        $("#divCheckPasswordSalah,#divCheckPasswordInfo").hide();
+    }
+}
+</script>
+</body>
+</html>

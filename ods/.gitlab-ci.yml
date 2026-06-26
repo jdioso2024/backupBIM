@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# GitLab CI/CD — pmb_terpadu (pengganti ods.bim.ac.id / pmb_raport)
+# Deploy otomatis ke MicroK8s setiap push ke branch main.
+#
+# Prasyarat (GitLab → Settings → CI/CD → Variables):
+#   APP_PATH : path direktori app di NFS, mis. /mnt/nfs/pmb_terpadu
+# ─────────────────────────────────────────────────────────────────────────────
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  only:
+    - main
+  tags:
+    - pmb-terpadu-runner
+  variables:
+    GIT_STRATEGY: none
+    GIT_SSL_NO_VERIFY: "true"
+  script:
+    # ── 0. Git safe directory ─────────────────────────────────────────────
+    - git config --global --add safe.directory "$APP_PATH"
+    - git config --global http.sslVerify false
+
+    # ── 1. Init git jika belum ada ────────────────────────────────────────
+    - |
+      if [ ! -d "$APP_PATH/.git" ]; then
+        echo ">>> Init git di $APP_PATH ..."
+        cd "$APP_PATH"
+        git init
+        git remote add origin "$CI_REPOSITORY_URL"
+        git fetch origin main
+        git reset --hard origin/main
+        echo ">>> Clone pertama selesai."
+      fi
+
+    # ── 2. Pull kode terbaru ──────────────────────────────────────────────
+    - echo ">>> Pull kode terbaru dari GitLab..."
+    - cd "$APP_PATH"
+    - git remote set-url origin "$CI_REPOSITORY_URL" || git remote add origin "$CI_REPOSITORY_URL"
+    - git fetch origin
+    - git reset --hard origin/main
+
+    # ── 3. Apply perubahan deployment ─────────────────────────────────────
+    - echo ">>> Apply k8s-deployment.yaml ..."
+    - microk8s kubectl apply -f "$APP_PATH/k8s-deployment.yaml"
+
+    # ── 4. Rolling restart (zero-downtime via readinessProbe) ─────────────
+    - microk8s kubectl rollout restart deployment/pmb-terpadu-deployment
+    - microk8s kubectl rollout status deployment/pmb-terpadu-deployment --timeout=360s
+
+    # ── 5. Status akhir ───────────────────────────────────────────────────
+    - echo ">>> Pod aktif setelah deploy:"
+    - microk8s kubectl get pods -l app=pmb-terpadu
+
+  environment:
+    name: production
+    url: https://ods.bim.ac.id

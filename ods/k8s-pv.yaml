@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NFS PersistentVolume — pmb_terpadu
+# NFS server: 10.3.11.52
+# Export path di server NFS: /mnt/nfs/pmb_terpadu
+#   (buat direktori dan export ke subnet cluster; syncronous, rw, no_root_squash)
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pmb-terpadu-nfs-pv
+  labels:
+    app: pmb-terpadu
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 10.3.11.52
+    path: /mnt/nfs/pmb_terpadu
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pmb-terpadu-nfs
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: ""
+  volumeName: pmb-terpadu-nfs-pv

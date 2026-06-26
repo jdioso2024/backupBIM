@@ -1,0 +1,260 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Proses Registrasi — {{ obj.pendaftar.no_daftar }}{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Proses Registrasi <small>{{ obj.pendaftar.no_daftar }}</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Kolom kiri: Info cama + Berkas diunggah -->
+            <div class="col-md-4">
+
+                <div class="portlet light portlet-fit bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-user font-blue"></i> Info Calon Mahasiswa</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-condensed table-light">
+                            <tr><td>Nama</td><td><strong>{{ obj.pendaftar.nama }}</strong></td></tr>
+                            <tr><td>No. Daftar</td><td>{{ obj.pendaftar.no_daftar }}</td></tr>
+                            <tr><td>Email</td><td>{{ obj.pendaftar.user.email }}</td></tr>
+                            <tr><td>Jalur</td><td>{{ obj.pendaftar.get_jalur_display }}</td></tr>
+                            <tr>
+                                <td>Prodi Diterima</td>
+                                <td><strong class="text-success">{{ obj.prodi_lulus|default:"-" }}</strong></td>
+                            </tr>
+                            {% if obj.tgl_registrasi %}
+                            <tr><td>Tgl Registrasi</td><td>{{ obj.tgl_registrasi|date:"d/m/Y H:i" }}</td></tr>
+                            {% endif %}
+                            {% if obj.diproses_oleh %}
+                            <tr><td>Diproses Oleh</td><td>{{ obj.diproses_oleh }}</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <div class="portlet light portlet-fit bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-docs font-blue"></i> Berkas Diunggah Cama</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if obj.pas_foto %}
+                        <a href="{{ obj.pas_foto.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-image"></i> Pas Foto</a>
+                        {% endif %}
+                        {% if obj.bukti_bayar_pendaftaran %}
+                        <a href="{{ obj.bukti_bayar_pendaftaran.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Bukti Bayar Pendaftaran</a>
+                        {% endif %}
+                        {% if obj.bukti_bayar_sks %}
+                        <a href="{{ obj.bukti_bayar_sks.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Bukti Bayar SKS</a>
+                        {% endif %}
+                        {% if obj.bukti_bayar_pengembangan %}
+                        <a href="{{ obj.bukti_bayar_pengembangan.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Bukti Bayar Pengembangan</a>
+                        {% endif %}
+                        {% if obj.akte_lahir %}
+                        <a href="{{ obj.akte_lahir.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Akte Kelahiran</a>
+                        {% endif %}
+                        {% if obj.ijazah %}
+                        <a href="{{ obj.ijazah.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Ijazah / STTB</a>
+                        {% endif %}
+                        {% if obj.skhun %}
+                        <a href="{{ obj.skhun.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> SKHUN</a>
+                        {% endif %}
+                        {% if obj.kartu_keluarga %}
+                        <a href="{{ obj.kartu_keluarga.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Kartu Keluarga</a>
+                        {% endif %}
+                        {% if obj.hasil_tes_kesehatan %}
+                        <a href="{{ obj.hasil_tes_kesehatan.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Hasil Tes Kesehatan</a>
+                        {% endif %}
+                        {% if obj.hasil_tes_mmpi2 %}
+                        <a href="{{ obj.hasil_tes_mmpi2.url }}" target="_blank" class="btn btn-default btn-sm btn-block margin-bottom-5"><i class="fa fa-file"></i> Hasil Tes MMPI-2</a>
+                        {% endif %}
+                        {% if not obj.pas_foto and not obj.bukti_bayar_pendaftaran and not obj.akte_lahir and not obj.ijazah %}
+                        <p class="text-muted text-center" style="padding:10px 0;">Belum ada berkas diunggah.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Kolom kanan: Status registrasi / form -->
+            <div class="col-md-8">
+
+                {% if obj.status == 1 and obj.nim %}
+                {# Registrasi selesai: tampilkan NIM + tombol cetak #}
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-check-circle"></i> Registrasi Selesai</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="row" style="padding:20px 0;">
+                            <div class="col-md-4 text-center">
+                                {% if obj.pendaftar.pas_foto %}
+                                <img src="{{ obj.pendaftar.pas_foto.url }}"
+                                     class="img-thumbnail"
+                                     style="width:150px; height:200px; object-fit:cover; border:3px solid #36c6d3;"/>
+                                {% else %}
+                                <div style="width:150px; height:200px; margin:0 auto;
+                                            background:#f5f5f5; border:2px dashed #ccc;
+                                            display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-user fa-4x text-muted"></i>
+                                </div>
+                                <p class="text-muted" style="font-size:11px; margin-top:5px;">Belum upload foto</p>
+                                {% endif %}
+                                <p style="margin-top:8px; font-weight:bold;">{{ obj.pendaftar.nama }}</p>
+                            </div>
+                            <div class="col-md-8 text-center">
+                                <p class="text-muted" style="font-size:14px;">Nomor Induk Mahasiswa</p>
+                                <h2 class="text-success" style="font-size:36px; font-weight:bold; letter-spacing:3px;">
+                                    {{ obj.nim }}
+                                </h2>
+                                {% if obj.prodi_lulus %}<p class="text-muted">{{ obj.prodi_lulus }}</p>{% endif %}
+                                {% if obj.tgl_registrasi %}
+                                <p class="text-muted" style="font-size:12px;">
+                                    Terdaftar: {{ obj.tgl_registrasi|date:"d/m/Y H:i" }}
+                                </p>
+                                {% endif %}
+                                {% if obj.catatan %}
+                                <div class="alert alert-info" style="margin-top:10px; text-align:left;">
+                                    <i class="fa fa-comment"></i> {{ obj.catatan }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-center">
+                            <a href="{% url 'panel:pdf_bukti_reg' obj.pk %}" target="_blank"
+                               class="btn btn-success btn-sm">
+                                <i class="fa fa-print"></i> Cetak Bukti Registrasi
+                            </a>
+                            <a href="{% url 'panel:pdf_ktm' obj.pk %}" target="_blank"
+                               class="btn btn-warning btn-sm" style="margin-left:5px;">
+                                <i class="fa fa-id-card"></i> Cetak KTM
+                            </a>
+                            {% if obj.prodi_lulus %}
+                            <a href="{% url 'panel:pdf_sertifikat_lulus' obj.pk %}" target="_blank"
+                               class="btn btn-info btn-sm" style="margin-left:5px;">
+                                <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                            </a>
+                            {% endif %}
+                            <form method="POST" style="display:inline; margin-left:5px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="nim" value="{{ obj.nim }}">
+                                <input type="hidden" name="catatan" value="{{ obj.catatan }}">
+                                <input type="hidden" name="status" value="0">
+                                <button type="submit" class="btn btn-default btn-sm"
+                                        onclick="return confirm('Batalkan registrasi dan hapus NIM?')">
+                                    <i class="fa fa-undo"></i> Batalkan Registrasi
+                                </button>
+                            </form>
+                            <a href="{% url 'panel:registrasi_list' %}" class="btn btn-default btn-sm" style="margin-left:5px;">
+                                <i class="fa fa-arrow-left"></i> Kembali
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                {# Belum selesai: form input NIM #}
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-id-badge"></i> Input NIM &amp; Selesaikan Registrasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="POST" class="form-horizontal">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">NIM</label>
+                                <div class="col-md-7">
+                                    <input type="text" name="nim" class="form-control input-lg"
+                                           value="{{ obj.nim }}"
+                                           placeholder="Kosongkan untuk auto-generate...">
+                                    <span class="help-block">
+                                        <i class="fa fa-info-circle"></i>
+                                        Kosongkan &amp; pilih <strong>Registrasi Selesai</strong> untuk auto-generate
+                                        NIM berdasarkan kode prodi + tahun + urutan.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Kelas</label>
+                                <div class="col-md-7">
+                                    <select name="kelas" class="form-control">
+                                        {% for val, label in kelas_choices %}
+                                        <option value="{{ val }}" {% if obj.kelas == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="help-block">
+                                        <i class="fa fa-info-circle"></i>
+                                        Menentukan rincian biaya kuliah yang tercetak di sertifikat lulus.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Catatan Admin</label>
+                                <div class="col-md-7">
+                                    <textarea name="catatan" class="form-control" rows="3"
+                                              placeholder="Catatan untuk cama (tampil di halaman registrasi cama)...">{{ obj.catatan }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label">Status Registrasi</label>
+                                <div class="col-md-7">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="status" value="0"
+                                               {% if obj.status == 0 %}checked{% endif %}>
+                                        Belum Selesai
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="status" value="1"
+                                               {% if obj.status == 1 %}checked{% endif %}>
+                                        <strong class="text-success">Registrasi Selesai</strong>
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="status" value="2"
+                                               {% if obj.status == 2 %}checked{% endif %}>
+                                        <span class="text-danger">Batal / Undur Diri</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary uppercase">
+                                    <i class="fa fa-save"></i> Simpan
+                                </button>
+                                <a href="{% url 'panel:registrasi_list' %}" class="btn btn-default">Kembali</a>
+                                {% if obj.prodi_lulus %}
+                                <a href="{% url 'panel:pdf_sertifikat_lulus' obj.pk %}" target="_blank"
+                                   class="btn btn-info pull-right">
+                                    <i class="fa fa-certificate"></i> Cetak Sertifikat Lulus
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

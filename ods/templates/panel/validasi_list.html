@@ -1,0 +1,95 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Validasi Dokumen{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Validasi Dokumen</h1></div>
+        </div>
+
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption"><i class="icon-check"></i> Daftar Berkas</div>
+            </div>
+            <div class="portlet-body">
+                <form method="get" class="form-inline" style="margin-bottom:15px;">
+                    <div class="btn-group" style="margin-right:10px;">
+                        <a href="?jalur=raport&q={{ q }}" class="btn btn-sm {% if jalur == 'raport' %}btn-primary{% else %}btn-default{% endif %}">Raport</a>
+                        <a href="?jalur=beasiswa&q={{ q }}" class="btn btn-sm {% if jalur == 'beasiswa' %}btn-primary{% else %}btn-default{% endif %}">Beasiswa</a>
+                        <a href="?jalur=umum&q={{ q }}" class="btn btn-sm {% if jalur == 'umum' %}btn-primary{% else %}btn-default{% endif %}">Umum / CBT</a>
+                    </div>
+                    <input type="hidden" name="jalur" value="{{ jalur }}">
+                    <input type="text" name="q" value="{{ q }}" class="form-control input-sm" placeholder="Cari nama / no daftar...">
+                    <button type="submit" class="btn btn-sm btn-default"><i class="icon-magnifier"></i></button>
+                </form>
+
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>No Daftar</th>
+                            <th>Nama</th>
+                            <th>Prodi Pilihan</th>
+                            {% if jalur == 'raport' %}
+                            <th>Nilai Raport</th>
+                            <th>Status</th>
+                            {% elif jalur == 'beasiswa' %}
+                            <th>Status Seleksi</th>
+                            {% else %}
+                            <th>Skor CBT</th>
+                            <th>Status</th>
+                            {% endif %}
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for obj in object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ obj.pendaftar.no_daftar }}</td>
+                            <td>{{ obj.pendaftar.nama }}</td>
+                            <td>{{ obj.pendaftar.prodi1 }}</td>
+                            {% if jalur == 'raport' %}
+                            <td>{{ obj.nilai_raport|default:"-" }}</td>
+                            <td>
+                                {% if obj.status == 1 %}<span class="label label-warning">Menunggu</span>
+                                {% elif obj.status == 2 %}<span class="label label-info">Valid</span>
+                                {% elif obj.status == 3 %}<span class="label label-success">Lulus</span>
+                                {% elif obj.status == 4 %}<span class="label label-danger">Tidak Lulus</span>
+                                {% else %}<span class="label label-default">Belum Upload</span>{% endif %}
+                            </td>
+                            {% elif jalur == 'beasiswa' %}
+                            <td>
+                                {% if obj.status_seleksi == 1 %}<span class="label label-warning">Proses</span>
+                                {% elif obj.status_seleksi == 2 %}<span class="label label-info">Verifikasi</span>
+                                {% elif obj.status_seleksi == 3 %}<span class="label label-success">Lolos</span>
+                                {% elif obj.status_seleksi == 4 %}<span class="label label-danger">Tidak Lolos</span>
+                                {% else %}<span class="label label-default">Belum Daftar</span>{% endif %}
+                            </td>
+                            {% else %}
+                            <td>{{ obj.skor_cbt|default:"-" }}</td>
+                            <td>
+                                {% if obj.status == 1 %}<span class="label label-warning">Mendaftar</span>
+                                {% elif obj.status == 2 %}<span class="label label-success">Lulus</span>
+                                {% elif obj.status == 3 %}<span class="label label-danger">Tidak Lulus</span>
+                                {% else %}<span class="label label-default">Belum</span>{% endif %}
+                            </td>
+                            {% endif %}
+                            <td>
+                                <a href="{% url 'panel:validasi_detail' jalur obj.pk %}" class="btn btn-xs btn-primary">
+                                    <i class="icon-pencil"></i> Proses
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted">Tidak ada data.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

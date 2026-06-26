@@ -1,0 +1,343 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Dashboard — {{ site.nama_program|default:"PMB Terpadu" }}{% endblock %}
+
+{% block content %}
+<style>
+.dash-wrap { padding: 20px; }
+.dash-title { margin: 0 0 4px 0; font-size: 24px; font-weight: 600; color: #1e2a5e; }
+.dash-subtitle { color: #888; font-size: 13px; margin: 0 0 22px 0; }
+
+.stat-card {
+    background: #fff; border-radius: 10px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #eef0f5; margin-bottom: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex; align-items: center; gap: 16px;
+    min-height: 95px;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
+.stat-icon {
+    width: 55px; height: 55px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff; flex-shrink: 0;
+}
+.stat-icon.blue   { background: linear-gradient(135deg, #4e9af1, #2171dc); }
+.stat-icon.green  { background: linear-gradient(135deg, #43d39e, #1fa67a); }
+.stat-icon.yellow { background: linear-gradient(135deg, #f7b84b, #d99122); }
+.stat-icon.purple { background: linear-gradient(135deg, #a98cff, #7857d6); }
+.stat-icon.red    { background: linear-gradient(135deg, #ef5a6f, #c73248); }
+.stat-icon.cyan   { background: linear-gradient(135deg, #3ad1e0, #149bab); }
+.stat-icon.gray   { background: linear-gradient(135deg, #8894a5, #5a6574); }
+
+.stat-body { flex: 1; min-width: 0; }
+.stat-label { color: #888; font-size: 12px; text-transform: uppercase;
+              letter-spacing: 0.5px; margin: 0 0 4px 0; font-weight: 600; }
+.stat-value { font-size: 28px; font-weight: 700; color: #1e2a5e; line-height: 1; margin: 0; }
+.stat-sub { font-size: 12px; color: #999; margin-top: 4px; }
+
+.section-head {
+    margin: 30px 0 14px; padding-bottom: 8px;
+    border-bottom: 2px solid #eef0f5;
+    font-size: 16px; font-weight: 600; color: #1e2a5e;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.section-head i { color: #2f3185; margin-right: 6px; }
+
+.progress-card {
+    background: #fff; border-radius: 10px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px;
+    border: 1px solid #eef0f5;
+}
+.progress-card .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+}
+.progress-card .name { font-weight: 600; color: #1e2a5e; }
+.progress-card .count { font-size: 13px; color: #888; }
+.progress-bar-wrap {
+    background: #f0f2f7; border-radius: 99px; overflow: hidden; height: 10px;
+}
+.progress-bar-fill {
+    height: 100%; border-radius: 99px; transition: width 0.4s;
+}
+.progress-bar-fill.raport   { background: linear-gradient(90deg, #4e9af1, #2171dc); }
+.progress-bar-fill.beasiswa { background: linear-gradient(90deg, #a98cff, #7857d6); }
+.progress-bar-fill.umum     { background: linear-gradient(90deg, #3ad1e0, #149bab); }
+
+a.stat-card { text-decoration: none; color: inherit; }
+
+.prodi-row { margin-bottom: 16px; }
+.prodi-row:last-child { margin-bottom: 0; }
+.prodi-row .count .num { font-weight: 700; color: #1e2a5e; }
+.prodi-row .count .pct { color: #aab; font-size: 12px; margin-left: 4px; }
+.prodi-row .count .pct.over { color: #c73248; font-weight: 700; }
+.prodi-row .count .quota { color: #8894a5; font-size: 12px; }
+.prodi-row .count .quota.unset { color: #d99122; }
+.progress-bar-fill.over { background: linear-gradient(90deg, #ef5a6f, #c73248) !important; }
+.progress-bar-fill.unset { background: #e0e3eb !important; }
+.prodi-empty { text-align: center; color: #999; padding: 24px 0; }
+
+.dash-table-card {
+    background: #fff; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #eef0f5;
+    margin-bottom: 20px;
+}
+.dash-table { width: 100%; margin: 0; border-collapse: collapse; }
+.dash-table thead th {
+    background: #f7f9fc; color: #8894a5; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 14px 16px; border-bottom: 2px solid #eef0f5;
+}
+.dash-table tbody td { padding: 14px 16px; vertical-align: middle;
+    border-bottom: 1px solid #f0f2f7; color: #1e2a5e; }
+.dash-table tbody tr:hover { background: #f9fbff; }
+.dash-table .jalur-name { font-weight: 600; }
+.dash-table .jalur-name i { margin-right: 8px; }
+.dash-table .num { font-size: 17px; font-weight: 700; }
+.dash-table .num.zero { color: #c2c8d4; }
+.dash-table tfoot td {
+    padding: 14px 16px; background: #f7f9fc; font-weight: 700;
+    color: #1e2a5e; border-top: 2px solid #eef0f5;
+}
+.dash-table .badge-lulus {
+    display: inline-block; min-width: 28px; padding: 3px 8px; border-radius: 99px;
+    background: #e9f9f1; color: #1fa67a; font-weight: 700;
+}
+.dash-table .badge-lulus.zero { background: #f0f2f7; color: #c2c8d4; }
+
+a.num-link { color: #7857d6; text-decoration: none; border-bottom: 1px dashed #a98cff; cursor: pointer; }
+a.num-link:hover, a.num-link:focus { color: #4e2bb5; border-bottom-color: #7857d6; text-decoration: none; }
+a.num-link.zero { color: #c2c8d4; border-bottom-color: #e0e3eb; }
+
+.dist-table { width: 100%; margin: 0; border-collapse: collapse; }
+.dist-table thead th {
+    background: #f7f9fc; color: #8894a5; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 10px 12px; border-bottom: 2px solid #eef0f5;
+}
+.dist-table tbody td { padding: 10px 12px; vertical-align: middle;
+    border-bottom: 1px solid #f0f2f7; color: #1e2a5e; font-size: 13px; }
+.dist-table tbody tr:hover { background: #f9fbff; }
+.dist-table tbody .kode { font-family: monospace; color: #7857d6; font-weight: 700; }
+.dist-table tbody .num { font-weight: 700; }
+.dist-table tbody .num.zero { color: #c2c8d4; font-weight: 400; }
+.dist-table tfoot td {
+    padding: 10px 12px; background: #f7f9fc; font-weight: 700;
+    color: #1e2a5e; border-top: 2px solid #eef0f5; font-size: 13px;
+}
+.dist-empty { text-align: center; color: #999; padding: 24px 0; }
+</style>
+
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="dash-wrap">
+
+            <h1 class="dash-title">Dashboard Operator</h1>
+            <p class="dash-subtitle">
+                Ringkasan PMB {{ site.singkatan|default:"" }} {{ site.tahun_ajaran|default:"" }}
+                &middot; diperbarui {% now "j F Y H:i" %}
+            </p>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fa fa-users"></i></div>
+                        <div class="stat-body">
+                            <p class="stat-label">Total Pendaftar</p>
+                            <p class="stat-value">{{ total_pendaftar|default:0 }}</p>
+                            <p class="stat-sub">Semua jalur</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon yellow"><i class="fa fa-clock-o"></i></div>
+                        <div class="stat-body">
+                            <p class="stat-label">Menunggu Validasi</p>
+                            <p class="stat-value">{{ menunggu_validasi }}</p>
+                            <p class="stat-sub">Butuh tindakan admin</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="fa fa-graduation-cap"></i></div>
+                        <div class="stat-body">
+                            <p class="stat-label">Total Lulus</p>
+                            <p class="stat-value">{{ total_lulus|default:0 }}</p>
+                            <p class="stat-sub">Raport + Beasiswa + Umum</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fa fa-id-card"></i></div>
+                        <div class="stat-body">
+                            <p class="stat-label">Sudah Registrasi</p>
+                            <p class="stat-value">{{ reg_sudah }}</p>
+                            <p class="stat-sub">Mendapat NIM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-head"><i class="fa fa-bar-chart"></i> Pendaftar per Program Studi</div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="progress-card">
+                        {% for p in prodi_stats %}
+                        <div class="prodi-row">
+                            <div class="header">
+                                <span class="name">
+                                    {{ p.nama }}{% if p.kode %} <small class="text-muted">({{ p.kode }})</small>{% endif %}
+                                </span>
+                                <span class="count">
+                                    <span class="num">{{ p.jumlah }}</span>
+                                    {% if p.kuota %}
+                                        <span class="quota">/ {{ p.kuota }} kuota</span>
+                                        <span class="pct{% if p.over %} over{% endif %}">{{ p.pct }}%{% if p.over %} ⚠{% endif %}</span>
+                                    {% else %}
+                                        pendaftar
+                                        <span class="quota unset" title="Kuota belum diset"><i class="fa fa-exclamation-triangle"></i> kuota belum diset</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill {% if p.over %}over{% elif not p.kuota %}unset{% else %}{% cycle 'raport' 'beasiswa' 'umum' %}{% endif %}"
+                                     style="width: {{ p.pct }}%;"></div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="prodi-empty"><i class="fa fa-inbox"></i> Belum ada pendaftar.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-head"><i class="fa fa-table"></i> Pendaftar &amp; Registrasi per Jalur</div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="dash-table-card">
+                        <div class="table-responsive">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Jalur</th>
+                                    <th class="text-center">Total</th>
+                                    <th class="text-center">Diproses</th>
+                                    <th class="text-center">Valid / Verifikasi</th>
+                                    <th class="text-center">Lulus / Lolos</th>
+                                    <th class="text-center">Belum DU</th>
+                                    <th class="text-center">Sudah DU</th>
+                                    <th class="text-center">Batal</th>
+                                    <th class="text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in jalur_rows %}
+                                <tr>
+                                    <td class="jalur-name"><i class="fa {{ r.icon }} {{ r.color }}"></i> {{ r.nama }}</td>
+                                    <td class="text-center">
+                                        {% if r.jalur == 'beasiswa' %}
+                                        <a href="#" class="num num-link{% if not r.total %} zero{% endif %}"
+                                           data-toggle="modal" data-target="#modalDistribusiBeasiswa"
+                                           title="Lihat distribusi jenis beasiswa">{{ r.total }}</a>
+                                        {% else %}
+                                        <span class="num{% if not r.total %} zero{% endif %}">{{ r.total }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{% if r.diproses == None %}&mdash;{% else %}{{ r.diproses }}{% endif %}</td>
+                                    <td class="text-center">{% if r.valid == None %}&mdash;{% else %}{{ r.valid }}{% endif %}</td>
+                                    <td class="text-center"><span class="badge-lulus{% if not r.lulus %} zero{% endif %}">{{ r.lulus }}</span></td>
+                                    <td class="text-center">{{ r.belum_du }}</td>
+                                    <td class="text-center"><span class="badge-lulus{% if not r.sudah_du %} zero{% endif %}">{{ r.sudah_du }}</span></td>
+                                    <td class="text-center">{{ r.batal_du }}</td>
+                                    <td class="text-right"><a href="{% url 'panel:validasi_list' %}?jalur={{ r.jalur }}" class="btn btn-xs btn-default">Detail</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>Total</td>
+                                    <td class="text-center">{{ jalur_totals.total }}</td>
+                                    <td class="text-center">{{ jalur_totals.diproses }}</td>
+                                    <td class="text-center">{{ jalur_totals.valid }}</td>
+                                    <td class="text-center">{{ jalur_totals.lulus }}</td>
+                                    <td class="text-center">{{ jalur_totals.belum_du }}</td>
+                                    <td class="text-center">{{ jalur_totals.sudah_du }}</td>
+                                    <td class="text-center">{{ jalur_totals.batal_du }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{# Modal: Distribusi Jenis Beasiswa #}
+<div class="modal fade" id="modalDistribusiBeasiswa" tabindex="-1" role="dialog" aria-labelledby="modalDistribusiBeasiswaLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">&times;</button>
+        <h4 class="modal-title" id="modalDistribusiBeasiswaLabel">
+          <i class="fa fa-trophy font-purple"></i> Distribusi Pendaftar Beasiswa per Jenis
+        </h4>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        {% if beasiswa_distribusi %}
+        <div class="table-responsive">
+        <table class="dist-table">
+          <thead>
+            <tr>
+              <th>Kode</th>
+              <th>Jenis Beasiswa</th>
+              <th class="text-center">Total</th>
+              <th class="text-center">Diproses</th>
+              <th class="text-center">Valid</th>
+              <th class="text-center">Lolos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in beasiswa_distribusi %}
+            <tr>
+              <td class="kode">{{ d.kode|default:"—" }}</td>
+              <td>{{ d.nama }}</td>
+              <td class="text-center"><span class="num{% if not d.total %} zero{% endif %}">{{ d.total }}</span></td>
+              <td class="text-center"><span class="num{% if not d.diproses %} zero{% endif %}">{{ d.diproses }}</span></td>
+              <td class="text-center"><span class="num{% if not d.valid %} zero{% endif %}">{{ d.valid }}</span></td>
+              <td class="text-center"><span class="num{% if not d.lolos %} zero{% endif %}">{{ d.lolos }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Total</td>
+              <td class="text-center">{{ beasiswa_dist_totals.total }}</td>
+              <td class="text-center">{{ beasiswa_dist_totals.diproses }}</td>
+              <td class="text-center">{{ beasiswa_dist_totals.valid }}</td>
+              <td class="text-center">{{ beasiswa_dist_totals.lolos }}</td>
+            </tr>
+          </tfoot>
+        </table>
+        </div>
+        {% else %}
+        <p class="dist-empty"><i class="fa fa-inbox"></i> Belum ada pendaftar beasiswa.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'panel:validasi_list' %}?jalur=beasiswa" class="btn btn-primary btn-sm">
+          <i class="fa fa-list"></i> Lihat Daftar Pendaftar Beasiswa
+        </a>
+        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

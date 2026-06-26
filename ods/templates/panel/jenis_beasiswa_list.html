@@ -1,0 +1,111 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Master Jenis Beasiswa{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Master Jenis Beasiswa</h1></div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-tags"></i> Daftar Jenis Beasiswa</div>
+                <div class="actions">
+                    <a href="{% url 'panel:jenis_beasiswa_new' %}" class="btn btn-sm btn-default">
+                        <i class="fa fa-plus"></i> Tambah Jenis
+                    </a>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <form method="GET" class="form-inline" style="margin-bottom:12px;">
+                    <input type="text" name="q" value="{{ q }}" class="form-control"
+                           placeholder="Cari kode atau nama..." style="width:280px;">
+                    <button type="submit" class="btn btn-primary" style="margin-left:10px;">
+                        <i class="fa fa-search"></i> Cari
+                    </button>
+                    {% if q %}
+                    <a href="{% url 'panel:jenis_beasiswa_list' %}" class="btn btn-default" style="margin-left:6px;">
+                        Reset
+                    </a>
+                    {% endif %}
+                </form>
+
+                <div class="table-scrollable">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">Urutan</th>
+                                <th style="width:130px;">Kode</th>
+                                <th>Nama Beasiswa</th>
+                                <th>Deskripsi</th>
+                                <th style="width:90px;text-align:center;">Status</th>
+                                <th style="width:180px;text-align:center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for j in object_list %}
+                            <tr>
+                                <td class="text-center">{{ j.urutan }}</td>
+                                <td><strong>{{ j.kode }}</strong></td>
+                                <td>{{ j.nama }}</td>
+                                <td class="text-muted">{{ j.deskripsi|default:"—"|truncatechars:80 }}</td>
+                                <td class="text-center">
+                                    {% if j.aktif %}
+                                    <span class="label label-success">Aktif</span>
+                                    {% else %}
+                                    <span class="label label-default">Nonaktif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'panel:jenis_beasiswa_edit' j.pk %}" class="btn btn-xs btn-primary">
+                                        <i class="fa fa-pencil"></i> Ubah
+                                    </a>
+                                    <form method="POST" action="{% url 'panel:jenis_beasiswa_delete' j.pk %}"
+                                          style="display:inline;"
+                                          onsubmit="return confirm('Hapus jenis beasiswa &quot;{{ j.nama|escapejs }}&quot;? Hanya bisa dihapus jika belum dipakai pendaftar.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-xs btn-danger">
+                                            <i class="fa fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted" style="padding:24px;">
+                                    {% if q %}
+                                    Tidak ada jenis beasiswa yang cocok dengan "<strong>{{ q }}</strong>".
+                                    {% else %}
+                                    Belum ada master jenis beasiswa.
+                                    <a href="{% url 'panel:jenis_beasiswa_new' %}">Tambah sekarang</a>.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-muted" style="margin-top:10px;font-size:12px;">
+                    <i class="fa fa-info-circle"></i>
+                    <strong>Kode</strong> akan disimpan di record pendaftaran. Mengganti kode jenis yang sudah dipakai
+                    akan membuat record pendaftar lama tidak ter-link ke nama baru — disarankan tambahkan jenis baru
+                    dan nonaktifkan yang lama daripada mengubah kode.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

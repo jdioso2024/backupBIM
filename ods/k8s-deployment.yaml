@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PMB Terpadu — Deployment + HPA (menggantikan ods.bim.ac.id / pmb_raport)
+# Pola sama dengan pmb_raport: RollingUpdate, shared image
+# haunans/my-akademik-image (sudah berisi ODBC17 + cert self-signed), gunicorn
+# HTTPS di dalam pod (Nginx reverse proxy terminate user-facing SSL).
+# Apply: microk8s kubectl apply -f k8s-deployment.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pmb-terpadu-deployment
+  labels:
+    app: pmb-terpadu
+spec:
+  selector:
+    matchLabels:
+      app: pmb-terpadu
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # pod lama jangan dimatikan sebelum pod baru siap
+      maxSurge: 1         # boleh ada 1 pod ekstra saat deploy
+  template:
+    metadata:
+      labels:
+        app: pmb-terpadu
+    spec:
+      containers:
+        - name: pmb-terpadu-container
+          image: haunans/my-akademik-image:latest
+          command:
+            - "sh"
+            - "-c"
+            - |
+              set -e
+              pip install --quiet -r /app/requirements.txt &&
+              mkdir -p /app/staticfiles /app/logs &&
+              python /app/manage.py migrate --noinput &&
+              python /app/manage.py collectstatic --noinput &&
+              exec gunicorn \
+                --certfile=/etc/ssl/certs/cert.pem \
+                --keyfile=/etc/ssl/private/key.pem \
+                pmb_terpadu.wsgi:application \
+                --bind 0.0.0.0:8000 \
+                --workers ${GUNICORN_WORKERS:-3} \
+                --timeout ${GUNICORN_TIMEOUT:-60} \
+                --access-logfile - \
+                --error-logfile -
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: pmb-terpadu-secret
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: pmb_terpadu.settings
+            - name: GUNICORN_WORKERS
+              value: "3"
+          volumeMounts:
+            - name: pmb-terpadu-volume
+              mountPath: /app
+          readinessProbe:
+            httpGet:
+              path: /login/
+              port: 8000
+              scheme: HTTPS
+              httpHeaders:
+                - name: Host
+                  value: ods.bim.ac.id
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 8
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: pmb-terpadu-volume
+          persistentVolumeClaim:
+            claimName: pmb-terpadu-nfs
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pmb-terpadu-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pmb-terpadu-deployment
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

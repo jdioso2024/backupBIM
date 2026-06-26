@@ -1,0 +1,252 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Pengaturan Situs{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Pengaturan Situs</h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Identitas Universitas -->
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><i class="icon-home"></i> Identitas Universitas</div>
+                </div>
+                <div class="portlet-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label>Nama Universitas</label>
+                                {{ form.nama_universitas }}
+                                {% if form.nama_universitas.errors %}<span class="help-block text-danger">{{ form.nama_universitas.errors.0 }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Singkatan</label>
+                                {{ form.singkatan }}
+                                {% if form.singkatan.errors %}<span class="help-block text-danger">{{ form.singkatan.errors.0 }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Alamat</label>
+                        {{ form.alamat }}
+                        {% if form.alamat.errors %}<span class="help-block text-danger">{{ form.alamat.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Kota</label>
+                                {{ form.kota }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Kode Pos</label>
+                                {{ form.kode_pos }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Telepon</label>
+                                {{ form.telepon }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Website</label>
+                                {{ form.website }}
+                                {% if form.website.errors %}<span class="help-block text-danger">{{ form.website.errors.0 }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Email PMB</label>
+                                {{ form.email_pmb }}
+                                {% if form.email_pmb.errors %}<span class="help-block text-danger">{{ form.email_pmb.errors.0 }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Program PMB -->
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><i class="fa fa-graduation-cap"></i> Program PMB</div>
+                </div>
+                <div class="portlet-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Nama Program</label>
+                                {{ form.nama_program }}
+                                {% if form.nama_program.errors %}<span class="help-block text-danger">{{ form.nama_program.errors.0 }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Tahun PMB</label>
+                                {{ form.tahun_pmb }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Tahun Ajaran</label>
+                                {{ form.tahun_ajaran }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Footer / Copyright</label>
+                        {{ form.footer_copyright }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logo & Favicon -->
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><i class="icon-picture"></i> Logo &amp; Favicon</div>
+                </div>
+                <div class="portlet-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Logo Utama <small class="text-muted">(untuk halaman web)</small></label>
+                                {% if obj.logo %}
+                                <div class="margin-bottom-5">
+                                    <img src="{{ obj.logo.url }}" alt="Logo" style="max-height:80px;max-width:200px;border:1px solid #ddd;padding:4px;border-radius:4px;">
+                                </div>
+                                {% endif %}
+                                {{ form.logo }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Logo Kop Dokumen <small class="text-muted">(untuk PDF / surat)</small></label>
+                                {% if obj.logo_kop %}
+                                <div class="margin-bottom-5">
+                                    <img src="{{ obj.logo_kop.url }}" alt="Logo Kop" style="max-height:80px;max-width:200px;border:1px solid #ddd;padding:4px;border-radius:4px;">
+                                </div>
+                                {% endif %}
+                                {{ form.logo_kop }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Favicon <small class="text-muted">(.ico / .png)</small></label>
+                                {% if obj.favicon %}
+                                <div class="margin-bottom-5">
+                                    <img src="{{ obj.favicon.url }}" alt="Favicon" style="max-height:32px;max-width:32px;border:1px solid #ddd;padding:2px;border-radius:4px;">
+                                </div>
+                                {% endif %}
+                                {{ form.favicon }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Logo Login Admin <small class="text-muted">(versi terang untuk background gelap)</small></label>
+                                {% if obj.logo_login %}
+                                <div class="margin-bottom-5" style="background:#1e2a5e; padding:8px; border-radius:4px; display:inline-block;">
+                                    <img src="{{ obj.logo_login.url }}" alt="Logo Login" style="max-height:80px;max-width:200px;">
+                                </div>
+                                {% endif %}
+                                {{ form.logo_login }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kop Dokumen / Penandatangan -->
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption"><i class="icon-docs"></i> Kop Dokumen &amp; Penandatangan</div>
+                    <div class="portlet-tools">
+                        <small class="text-muted">Digunakan pada PDF sertifikat, bukti registrasi, dan dokumen resmi lainnya</small>
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Nama Pimpinan <small class="text-muted">(Rektor / Ketua Panitia)</small></label>
+                                {{ form.nama_pimpinan }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>NIP / NIK Pimpinan</label>
+                                {{ form.nip_pimpinan }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Jabatan Penandatangan</label>
+                                {{ form.jabatan_pimpinan }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kota Tanda Tangan</label>
+                                {{ form.kota_ttd }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Kop Dokumen -->
+                    <div class="well well-sm margin-top-10">
+                        <p class="text-muted margin-bottom-5"><strong>Preview Kop Dokumen:</strong></p>
+                        <div style="border:1px solid #ccc;padding:12px;border-radius:4px;background:#fff;">
+                            <div style="display:flex;align-items:center;border-bottom:2px solid #555;padding-bottom:8px;">
+                                {% if obj.logo_kop %}
+                                <img src="{{ obj.logo_kop.url }}" style="max-height:60px;margin-right:14px;">
+                                {% elif obj.logo %}
+                                <img src="{{ obj.logo.url }}" style="max-height:60px;margin-right:14px;">
+                                {% endif %}
+                                <div>
+                                    <div style="font-weight:bold;font-size:14px;">{{ obj.nama_universitas }}</div>
+                                    <div style="font-size:12px;">{{ obj.alamat }}, {{ obj.kota }} {{ obj.kode_pos }}</div>
+                                    <div style="font-size:12px;">Telp. {{ obj.telepon }} | {{ obj.website }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="icon-check"></i> Simpan Pengaturan
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

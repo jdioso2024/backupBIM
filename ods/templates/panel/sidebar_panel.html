@@ -1,0 +1,89 @@
+{% load static %}
+<div class="page-container">
+    <div class="page-sidebar-wrapper">
+        <div class="page-sidebar navbar-collapse collapse">
+            <ul class="page-sidebar-menu" data-keep-expanded="false" data-auto-scroll="true" data-slide-speed="200">
+                <li class="heading"><h3 class="uppercase">Panel Operator</h3></li>
+
+                <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'panel:dashboard' %}" class="nav-link">
+                        <i class="icon-home"></i><span class="title">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Cari Cama</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'cari_cama' or request.resolver_match.url_name == 'cari_cama_detail' %}active{% endif %}">
+                    <a href="{% url 'panel:cari_cama' %}" class="nav-link">
+                        <i class="icon-magnifier"></i><span class="title">Pencarian Cama</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Validasi</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'validasi_list' or request.resolver_match.url_name == 'validasi_detail' %}active{% endif %}">
+                    <a href="{% url 'panel:validasi_list' %}" class="nav-link">
+                        <i class="icon-check"></i><span class="title">Validasi Dokumen</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Kelulusan</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'kelulusan_list' or request.resolver_match.url_name == 'kelulusan_set' %}active{% endif %}">
+                    <a href="{% url 'panel:kelulusan_list' %}" class="nav-link">
+                        <i class="fa fa-graduation-cap"></i><span class="title">Kelulusan</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Registrasi</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'registrasi_list' or request.resolver_match.url_name == 'registrasi_set' %}active{% endif %}">
+                    <a href="{% url 'panel:registrasi_list' %}" class="nav-link">
+                        <i class="icon-user-follow"></i><span class="title">Daftar Ulang</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Master Data</h3></li>
+                <li class="nav-item {% if 'kelola_prodi' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'panel:kelola_prodi_list' %}" class="nav-link">
+                        <i class="icon-graduation"></i><span class="title">Kelola Prodi &amp; Kuota</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'jenis_beasiswa' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'panel:jenis_beasiswa_list' %}" class="nav-link">
+                        <i class="icon-tag"></i><span class="title">Jenis Beasiswa</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Import Data</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'import_pendaftar' %}active{% endif %}">
+                    <a href="{% url 'panel:import_pendaftar' %}" class="nav-link">
+                        <i class="icon-cloud-upload"></i><span class="title">Import Pendaftar (CSV)</span>
+                    </a>
+                </li>
+
+                <li class="heading"><h3 class="uppercase">Pengaturan</h3></li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'pengaturan' %}active{% endif %}">
+                    <a href="{% url 'panel:pengaturan' %}" class="nav-link">
+                        <i class="icon-settings"></i><span class="title">Pengaturan Situs</span>
+                    </a>
+                </li>
+                {% if request.user.is_superuser %}
+                <li class="nav-item {% if request.resolver_match.url_name == 'integrasi_config' %}active{% endif %}">
+                    <a href="{% url 'panel:integrasi_config' %}" class="nav-link">
+                        <i class="icon-share"></i><span class="title">Integrasi API</span>
+                        <span class="badge badge-danger">SU</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'kelola_user' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'panel:kelola_user_list' %}" class="nav-link">
+                        <i class="icon-users"></i><span class="title">Kelola User</span>
+                        <span class="badge badge-danger">SU</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'cleanup_duplikat' %}active{% endif %}">
+                    <a href="{% url 'panel:cleanup_duplikat' %}" class="nav-link">
+                        <i class="icon-trash"></i><span class="title">Cleanup Duplikat</span>
+                        <span class="badge badge-danger">SU</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>

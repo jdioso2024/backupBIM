@@ -1,0 +1,58 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Upload Berkas Raport - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-9">
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-doc"></i> Upload Berkas Raport &amp; Sertifikat Prestasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="alert alert-info"><i class="fa fa-info-circle"></i> Upload file raport semester 1–5 (gabung dalam 1 PDF) dan sertifikat prestasi jika ada. Format: JPG/PNG/PDF. Maks 10 MB per file.</div>
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <table class="table table-bordered table-striped table-condensed">
+                                <thead>
+                                    <tr><th>Berkas</th><th>Upload / Ganti File</th><th width="100">Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>File Raport Semester 1–5</strong> <span class="text-danger">*</span><br/><small>Gabungkan semua raport dalam 1 file PDF/JPG</small></td>
+                                        <td>{{ form.file_raport }}</td>
+                                        <td align="center">{% if berkas.file_raport %}<a href="{{ berkas.file_raport.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}<span class="label label-sm label-danger">Belum</span>{% endif %}</td>
+                                    </tr>
+                                    <tr><td colspan="3" class="active"><strong><i class="fa fa-trophy"></i> Sertifikat Prestasi</strong> <span class="text-muted">(Opsional — nilai tambahan jika ada)</span></td></tr>
+                                    <tr>
+                                        <td>Prestasi Tingkat Sekolah<br/><small>{{ form.tingkat_prestasi_1 }}</small></td>
+                                        <td>{{ form.file_prestasi_1 }}</td>
+                                        <td align="center">{% if berkas.file_prestasi_1 %}<a href="{{ berkas.file_prestasi_1.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Prestasi Tingkat Kab/Provinsi<br/><small>{{ form.tingkat_prestasi_2 }}</small></td>
+                                        <td>{{ form.file_prestasi_2 }}</td>
+                                        <td align="center">{% if berkas.file_prestasi_2 %}<a href="{{ berkas.file_prestasi_2.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Prestasi Tingkat Nasional/Internasional<br/><small>{{ form.tingkat_prestasi_3 }}</small></td>
+                                        <td>{{ form.file_prestasi_3 }}</td>
+                                        <td align="center">{% if berkas.file_prestasi_3 %}<a href="{{ berkas.file_prestasi_3.url }}" target="_blank" class="btn btn-xs default"><i class="fa fa-file"></i> Lihat</a>{% else %}-{% endif %}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="form-actions">
+                                <button type="submit" class="btn green uppercase"><i class="fa fa-upload"></i> Simpan &amp; Upload</button>
+                                <a href="{% url 'dashboard' %}" class="btn default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

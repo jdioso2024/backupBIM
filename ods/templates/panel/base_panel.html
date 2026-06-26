@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block logo_url %}{% url 'panel:dashboard' %}{% endblock %}
+{% block logo_text %}{{ site.singkatan|default:"PMB" }} Admin{% endblock %}
+{% block logout_url %}{% url 'panel:logout' %}{% endblock %}
+{% block sidebar %}{% include 'panel/sidebar_panel.html' %}{% endblock %}
+
+{% block pluginscss %}
+<style>
+/* Logo header: cegah wrap & pakai ukuran yang pas dengan sidebar */
+.page-logo { min-width: 235px; }
+.page-logo a.h2 {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: inline-block; max-width: 180px; font-size: 18px; line-height: 48px;
+}
+
+/* Saat sidebar ditutup, sembunyikan heading section supaya menu terlihat rapi */
+.page-sidebar-closed .page-sidebar-menu > li.heading { display: none !important; }
+
+/* Sidebar terbuka: heading dibuat lebih subtle */
+.page-sidebar-menu > li.heading > h3 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    color: #7a88a8; padding: 16px 20px 6px; margin: 0;
+}
+
+/* Item nav sidebar: padding lebih nyaman, hover smooth */
+.page-sidebar-menu > li.nav-item > a.nav-link {
+    padding: 11px 20px; transition: background 0.15s;
+}
+.page-sidebar-menu > li.nav-item.active > a.nav-link,
+.page-sidebar-menu > li.nav-item > a.nav-link:hover {
+    background: #eef3fb !important; color: #2f3185 !important;
+}
+.page-sidebar-menu > li.nav-item > a.nav-link > i {
+    font-size: 16px; margin-right: 10px;
+}
+
+/* Sidebar tertutup: center-kan icon dan buang gap aneh */
+.page-sidebar-closed .page-sidebar-menu > li.nav-item > a.nav-link {
+    padding: 12px 0; text-align: center;
+}
+.page-sidebar-closed .page-sidebar-menu > li.nav-item > a.nav-link > i {
+    margin-right: 0;
+}
+
+/* Footer page lebih clean */
+.page-footer .page-footer-inner { color: #888; font-size: 12px; }
+</style>
+{% endblock %}

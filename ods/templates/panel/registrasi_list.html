@@ -1,0 +1,87 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Registrasi Mahasiswa Baru{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title"><h1>Registrasi Mahasiswa Baru</h1></div>
+        </div>
+
+        <div class="portlet box blue">
+            <div class="portlet-title">
+                <div class="caption"><i class="fa fa-search"></i> Cari Pendaftar</div>
+            </div>
+            <div class="portlet-body">
+                <form method="GET" class="form-inline">
+                    <input type="text" name="q" value="{{ q }}" class="form-control"
+                           placeholder="No. Daftar / Nama / NIM..." style="width:280px;">
+                    <select name="status" class="form-control" style="margin-left:10px;">
+                        <option value="">-- Semua Status --</option>
+                        <option value="0" {% if status_filter == '0' %}selected{% endif %}>Belum Daftar Ulang</option>
+                        <option value="1" {% if status_filter == '1' %}selected{% endif %}>Sudah Daftar Ulang</option>
+                        <option value="2" {% if status_filter == '2' %}selected{% endif %}>Batal / Undur Diri</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="margin-left:10px;">
+                        <i class="fa fa-search"></i> Cari
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="portlet light portlet-fit bordered">
+            <div class="portlet-body">
+                <div class="table-scrollable">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                            <tr>
+                                <th>No. Daftar</th>
+                                <th>Nama</th>
+                                <th>Jalur</th>
+                                <th>Prodi Diterima</th>
+                                <th>NIM</th>
+                                <th>Status</th>
+                                <th>Tgl Registrasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for obj in object_list %}
+                            <tr>
+                                <td><strong>{{ obj.pendaftar.no_daftar }}</strong></td>
+                                <td>{{ obj.pendaftar.nama }}</td>
+                                <td><span class="label label-default">{{ obj.pendaftar.get_jalur_display }}</span></td>
+                                <td>{{ obj.prodi_lulus|default:"-" }}</td>
+                                <td>
+                                    {% if obj.nim %}
+                                    <strong class="text-success">{{ obj.nim }}</strong>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td>
+                                    {% if obj.status == 0 %}<span class="label label-warning">Menunggu</span>
+                                    {% elif obj.status == 1 %}<span class="label label-success">Selesai</span>
+                                    {% elif obj.status == 2 %}<span class="label label-danger">Batal</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ obj.tgl_registrasi|date:"d/m/Y H:i"|default:"-" }}</td>
+                                <td>
+                                    <a href="{% url 'panel:registrasi_set' obj.pk %}" class="btn btn-xs btn-primary">
+                                        <i class="fa fa-pencil"></i> Proses
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">Tidak ada data registrasi.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

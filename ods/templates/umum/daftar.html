@@ -1,0 +1,46 @@
+{% extends 'base_cama.html' %}
+{% load static %}
+{% block title %}Konfirmasi Pendaftaran - PMB Terpadu{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}"><button class="close" data-dismiss="alert"></button>{{ message }}</div>{% endfor %}{% endif %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="portlet box yellow">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-check"></i> Status Pendaftaran Jalur Umum</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-condensed">
+                            <tr><td width="40%">No. Pendaftaran</td><td><strong>{{ pendaftar.no_daftar }}</strong></td></tr>
+                            <tr><td>Nama</td><td><strong>{{ pendaftar.nama }}</strong></td></tr>
+                            <tr><td>Prodi Pilihan 1</td><td>{{ pendaftar.prodi1|default:"-" }}</td></tr>
+                            <tr><td>Prodi Pilihan 2</td><td>{{ pendaftar.prodi2|default:"-" }}</td></tr>
+                            <tr><td>Status</td><td>
+                                {% if umum %}
+                                <span class="label label-sm
+                                    {% if umum.status == 2 %}label-success
+                                    {% elif umum.status == 3 %}label-danger
+                                    {% else %}label-info{% endif %}">
+                                    {{ umum.get_status_display }}
+                                </span>
+                                {% if umum.skor_cbt %}<br/><small>Skor CBT: <strong>{{ umum.skor_cbt }}</strong></small>{% endif %}
+                                {% else %}
+                                <span class="label label-sm label-default">Terdaftar</span>
+                                {% endif %}
+                            </td></tr>
+                        </table>
+                        <div class="alert alert-info" style="margin-top:15px;">
+                            <i class="fa fa-info-circle"></i>
+                            Jadwal Tes CBT akan diinformasikan melalui email yang terdaftar. Pastikan data diri dan berkas sudah lengkap.
+                        </div>
+                        <a href="{% url 'dashboard' %}" class="btn yellow uppercase"><i class="fa fa-arrow-left"></i> Kembali ke Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

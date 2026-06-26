@@ -1,0 +1,431 @@
+{% extends 'panel/base_panel.html' %}
+{% load static %}
+{% block title %}Detail Validasi{% endblock %}
+
+{% block content %}
+<div class="page-content-wrapper">
+    <div class="page-content">
+        <div class="page-head">
+            <div class="page-title">
+                <h1>Validasi Dokumen <small>{{ jalur|capfirst }} — {{ obj.pendaftar.no_daftar }}</small></h1>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Kolom kiri: Info Cama -->
+            <div class="col-md-4">
+                <div class="portlet light portlet-fit bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-user font-blue"></i> Informasi Cama</div>
+                    </div>
+                    <div class="portlet-body">
+                        {% if obj.pendaftar.pas_foto %}
+                        <div class="text-center" style="margin-bottom:15px;">
+                            <img src="{{ obj.pendaftar.pas_foto.url }}" class="img-thumbnail"
+                                 style="max-height:140px;">
+                        </div>
+                        {% endif %}
+                        <table class="table table-condensed table-light">
+                            <tr><td>No Daftar</td><td><strong>{{ obj.pendaftar.no_daftar }}</strong></td></tr>
+                            <tr><td>Nama</td><td><strong>{{ obj.pendaftar.nama }}</strong></td></tr>
+                            <tr><td>NIK</td><td>{{ obj.pendaftar.NIK|default:"-" }}</td></tr>
+                            <tr><td>Email</td><td>{{ obj.pendaftar.user.email }}</td></tr>
+                            <tr><td>No HP</td><td>{{ obj.pendaftar.no_hp|default:"-" }}</td></tr>
+                            <tr><td>Jalur</td><td>{{ obj.pendaftar.get_jalur_display }}</td></tr>
+                            <tr><td>Pilihan 1</td><td><strong>{{ obj.pendaftar.prodi1 }}</strong></td></tr>
+                            <tr><td>Pilihan 2</td><td>{{ obj.pendaftar.prodi2|default:"-" }}</td></tr>
+                            {% if obj.pendaftar.sekolah %}
+                            <tr><td>Asal Sekolah</td><td>{{ obj.pendaftar.sekolah.nama|default:"-" }}</td></tr>
+                            <tr><td>Jurusan</td><td>{{ obj.pendaftar.sekolah.jurusan|default:"-" }}</td></tr>
+                            <tr><td>Akreditasi</td><td>{{ obj.pendaftar.sekolah.get_akreditasi_display|default:"-" }}</td></tr>
+                            {% endif %}
+                            {% if obj.diproses_oleh %}
+                            <tr><td>Diproses</td><td>{{ obj.diproses_oleh }}<br><small class="text-muted">{{ obj.tgl_diproses|date:"d/m/Y H:i" }}</small></td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                {% if obj.pendaftar.scan_ktp %}
+                <div class="portlet light bordered">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-picture font-blue"></i> Scan KTP</div>
+                    </div>
+                    <div class="portlet-body text-center">
+                        <a href="{{ obj.pendaftar.scan_ktp.url }}" target="_blank">
+                            <img src="{{ obj.pendaftar.scan_ktp.url }}" class="img-responsive img-thumbnail">
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Kolom kanan: Preview dokumen + form validasi -->
+            <div class="col-md-8">
+
+                {% if jalur == 'raport' %}
+                <div class="portlet box green">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-docs"></i> Berkas Raport &amp; Prestasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><strong>Scan Raport</strong></h5>
+                                {% if obj.file_raport %}
+                                <embed src="{{ obj.file_raport.url }}" type="application/pdf" height="420px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_raport.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning">Cama belum upload scan raport.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5><strong>Sertifikat Prestasi 1</strong>
+                                    {% if obj.tingkat_prestasi_1 %} — {{ obj.get_tingkat_prestasi_1_display }}{% endif %}
+                                </h5>
+                                {% if obj.file_prestasi_1 %}
+                                <embed src="{{ obj.file_prestasi_1.url }}" type="application/pdf" height="420px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_prestasi_1.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak ada sertifikat prestasi 1.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:15px;">
+                            <div class="col-md-6">
+                                <h5><strong>Sertifikat Prestasi 2</strong>
+                                    {% if obj.tingkat_prestasi_2 %} — {{ obj.get_tingkat_prestasi_2_display }}{% endif %}
+                                </h5>
+                                {% if obj.file_prestasi_2 %}
+                                <embed src="{{ obj.file_prestasi_2.url }}" type="application/pdf" height="420px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_prestasi_2.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak ada sertifikat prestasi 2.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5><strong>Sertifikat Prestasi 3</strong>
+                                    {% if obj.tingkat_prestasi_3 %} — {{ obj.get_tingkat_prestasi_3_display }}{% endif %}
+                                </h5>
+                                {% if obj.file_prestasi_3 %}
+                                <embed src="{{ obj.file_prestasi_3.url }}" type="application/pdf" height="420px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_prestasi_3.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak ada sertifikat prestasi 3.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-pencil"></i> Form Validasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="post" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Status</label>
+                                <div class="col-sm-6">
+                                    <select name="status" class="form-control">
+                                        <option value="0" {% if obj.status == 0 %}selected{% endif %}>Belum Upload</option>
+                                        <option value="1" {% if obj.status == 1 %}selected{% endif %}>Menunggu Verifikasi</option>
+                                        <option value="2" {% if obj.status == 2 %}selected{% endif %}>Valid</option>
+                                        <option value="3" {% if obj.status == 3 %}selected{% endif %}>Lulus</option>
+                                        <option value="4" {% if obj.status == 4 %}selected{% endif %}>Tidak Lulus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Nilai Raport</label>
+                                <div class="col-sm-3">
+                                    <input type="number" step="0.01" name="nilai_raport" value="{{ obj.nilai_raport|default:'' }}" class="form-control">
+                                </div>
+                                <label class="col-sm-2 control-label">Nilai Prestasi</label>
+                                <div class="col-sm-3">
+                                    <input type="number" step="0.01" name="nilai_prestasi" value="{{ obj.nilai_prestasi|default:'' }}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Prodi Lulus</label>
+                                <div class="col-sm-6">
+                                    <select name="prodi_lulus" class="form-control">
+                                        <option value="">-- pilih prodi --</option>
+                                        {% for p in prodi_list %}
+                                        <option value="{{ p.pk }}" {% if obj.prodi_lulus_id == p.pk %}selected{% endif %}>{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Keterangan</label>
+                                <div class="col-sm-9">
+                                    <textarea name="keterangan" class="form-control" rows="3">{{ obj.keterangan }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
+                                <a href="{% url 'panel:validasi_list' %}?jalur={{ jalur }}" class="btn btn-default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% elif jalur == 'beasiswa' %}
+                <div class="portlet box yellow">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-graduation-cap"></i> Berkas Beasiswa
+                            <span class="text-muted">— {{ obj.get_jenis_beasiswa_display }} (Batch {{ obj.batch }})</span>
+                        </div>
+                    </div>
+                    <div class="portlet-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><strong>Formulir Beasiswa</strong> <span class="text-danger">*</span></h5>
+                                {% if obj.file_formulir %}
+                                <embed src="{{ obj.file_formulir.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_formulir.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning">Belum upload.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5><strong>Surat Keterangan Penghasilan Ortu</strong></h5>
+                                {% if obj.file_penghasilan %}
+                                <embed src="{{ obj.file_penghasilan.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_penghasilan.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak diupload.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:15px;">
+                            <div class="col-md-6">
+                                <h5><strong>Surat Rekomendasi Sekolah</strong></h5>
+                                {% if obj.file_rekomendasi %}
+                                <embed src="{{ obj.file_rekomendasi.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_rekomendasi.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak diupload.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5><strong>Scan Raport</strong></h5>
+                                {% if obj.file_raport %}
+                                <embed src="{{ obj.file_raport.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_raport.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak diupload.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:15px;">
+                            <div class="col-md-6">
+                                <h5><strong>Sertifikat Prestasi</strong></h5>
+                                {% if obj.file_prestasi %}
+                                <embed src="{{ obj.file_prestasi.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_prestasi.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak diupload.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5><strong>Sertifikat TOEFL / Bahasa Inggris</strong></h5>
+                                {% if obj.file_toefl %}
+                                <embed src="{{ obj.file_toefl.url }}" type="application/pdf" height="350px" width="100%">
+                                <div style="margin-top:5px;">
+                                    <a href="{{ obj.file_toefl.url }}" target="_blank" class="btn btn-xs btn-default">
+                                        <i class="fa fa-external-link"></i> Buka file</a>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-default" style="background:#f5f5f5;">Tidak diupload.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if obj.prestasi.all %}
+                <div class="portlet box yellow-lemon">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="fa fa-trophy"></i> Data Prestasi Cama</div>
+                    </div>
+                    <div class="portlet-body">
+                        <table class="table table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Nama Prestasi</th>
+                                    <th>Tingkat</th>
+                                    <th>Tahun</th>
+                                    <th>File</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in obj.prestasi.all %}
+                                <tr>
+                                    <td>{{ p.nama }}</td>
+                                    <td>{{ p.get_tingkat_display }}</td>
+                                    <td>{{ p.tahun }}</td>
+                                    <td>
+                                        {% if p.file %}
+                                        <a href="{{ p.file.url }}" target="_blank" class="btn btn-xs btn-default">
+                                            <i class="fa fa-file"></i> Lihat</a>
+                                        {% else %}-{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-pencil"></i> Form Validasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="post" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Jenis Beasiswa</label>
+                                <div class="col-sm-6">
+                                    <select name="jenis_beasiswa" class="form-control">
+                                        <option value="">-- pilih jenis beasiswa --</option>
+                                        {% for j in jenis_beasiswa_list %}
+                                        <option value="{{ j.kode }}" {% if obj.jenis_beasiswa == j.kode %}selected{% endif %}>{{ j.kode }} &mdash; {{ j.nama }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="help-block">Pilihan cama: <strong>{{ obj.get_jenis_beasiswa_display|default:"-" }}</strong></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Status Seleksi</label>
+                                <div class="col-sm-6">
+                                    <select name="status_seleksi" class="form-control">
+                                        <option value="0" {% if obj.status_seleksi == 0 %}selected{% endif %}>Melengkapi Data</option>
+                                        <option value="1" {% if obj.status_seleksi == 1 %}selected{% endif %}>Proses Seleksi</option>
+                                        <option value="2" {% if obj.status_seleksi == 2 %}selected{% endif %}>Terverifikasi</option>
+                                        <option value="3" {% if obj.status_seleksi == 3 %}selected{% endif %}>Lolos</option>
+                                        <option value="4" {% if obj.status_seleksi == 4 %}selected{% endif %}>Tidak Lolos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Prodi Lulus</label>
+                                <div class="col-sm-6">
+                                    <select name="prodi_lulus" class="form-control">
+                                        <option value="">-- pilih prodi --</option>
+                                        {% for p in prodi_list %}
+                                        <option value="{{ p.pk }}" {% if obj.prodi_lulus_id == p.pk %}selected{% endif %}>{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Catatan Panitia</label>
+                                <div class="col-sm-9">
+                                    <textarea name="catatan_panitia" class="form-control" rows="3">{{ obj.catatan_panitia }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
+                                <a href="{% url 'panel:validasi_list' %}?jalur={{ jalur }}" class="btn btn-default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="portlet box blue">
+                    <div class="portlet-title">
+                        <div class="caption"><i class="icon-pencil"></i> Form Validasi</div>
+                    </div>
+                    <div class="portlet-body">
+                        <form method="post" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Status</label>
+                                <div class="col-sm-6">
+                                    <select name="status" class="form-control">
+                                        <option value="0" {% if obj.status == 0 %}selected{% endif %}>Belum</option>
+                                        <option value="1" {% if obj.status == 1 %}selected{% endif %}>Mendaftar CBT</option>
+                                        <option value="2" {% if obj.status == 2 %}selected{% endif %}>Lulus</option>
+                                        <option value="3" {% if obj.status == 3 %}selected{% endif %}>Tidak Lulus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Skor CBT</label>
+                                <div class="col-sm-4">
+                                    <input type="number" step="0.01" name="skor_cbt" value="{{ obj.skor_cbt|default:'' }}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Prodi Lulus</label>
+                                <div class="col-sm-6">
+                                    <select name="prodi_lulus" class="form-control">
+                                        <option value="">-- pilih prodi --</option>
+                                        {% for p in prodi_list %}
+                                        <option value="{{ p.pk }}" {% if obj.prodi_lulus_id == p.pk %}selected{% endif %}>{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Keterangan</label>
+                                <div class="col-sm-9">
+                                    <textarea name="keterangan" class="form-control" rows="3">{{ obj.keterangan }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
+                                <a href="{% url 'panel:validasi_list' %}?jalur={{ jalur }}" class="btn btn-default">Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
